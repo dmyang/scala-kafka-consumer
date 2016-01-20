@@ -1,7 +1,7 @@
 package pd.kafkaconsumer.testsupport
 
 import org.apache.kafka.clients.consumer.ConsumerRecords
-import pd.kafkaconsumer.{KafkaClusterLookup, SimpleKafkaConsumer}
+import pd.kafkaconsumer.{ KafkaClusterLookup, SimpleKafkaConsumer }
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
@@ -14,7 +14,8 @@ object TestConsumerConfig {
   def makeProps = {
     val props = SimpleKafkaConsumer.makeProps(
       KafkaClusterLookup.findBootstrapServer,
-      TestConsumerConfig.consumerGroup)
+      TestConsumerConfig.consumerGroup
+    )
     // Make stuff fail a bit quicker than normal
     props.put("session.timeout.ms", "6000")
     props.put("heartbeat.interval.ms", "1000")
@@ -23,16 +24,17 @@ object TestConsumerConfig {
 }
 
 class TestConsumer(
-                    topic: String,
-                    pollTimeout: Duration = 100 milliseconds,
-                    restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay)
-  extends SimpleKafkaConsumer(
-    topic,
-    TestConsumerConfig.makeProps,
-    pollTimeout = pollTimeout,
-    restartOnExceptionDelay = restartOnExceptionDelay)
-  with ConsumerTestHelper
-{
+  topic: String,
+  pollTimeout: Duration = 100 milliseconds,
+  restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay
+)
+    extends SimpleKafkaConsumer(
+      topic,
+      TestConsumerConfig.makeProps,
+      pollTimeout = pollTimeout,
+      restartOnExceptionDelay = restartOnExceptionDelay
+    )
+    with ConsumerTestHelper {
 
   private var keys = Set.empty[Long]
   def processedKeys: Set[Long] = this.synchronized { keys }
@@ -75,16 +77,17 @@ trait ConsumerTestHelper { self: SimpleKafkaConsumer[_, _] =>
   }
 }
 
-class ShutdownTestConsumer(topic: String,
-                           pollTimeout: Duration = 100 milliseconds,
-                           restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay)
-  extends SimpleKafkaConsumer(
-    topic,
-    TestConsumerConfig.makeProps,
-    pollTimeout = pollTimeout,
-    restartOnExceptionDelay = restartOnExceptionDelay
-  )
-{
+class ShutdownTestConsumer(
+  topic: String,
+  pollTimeout: Duration = 100 milliseconds,
+  restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay
+)
+    extends SimpleKafkaConsumer(
+      topic,
+      TestConsumerConfig.makeProps,
+      pollTimeout = pollTimeout,
+      restartOnExceptionDelay = restartOnExceptionDelay
+    ) {
   override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {}
 
   def awaitTerminationAndTrackDelay(): Long = {

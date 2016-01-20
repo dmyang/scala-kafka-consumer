@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/PagerDuty/pd-kafka-consumer.svg?token=7Mi8LhmhpJYhzs4euq1w&branch=master)](https://travis-ci.com/PagerDuty/pd-kafka-consumer)
+
 # PagerDuty Kafka Consumer
 
 This is an opinionated wrapper around the Kafka consumer, adding a default set

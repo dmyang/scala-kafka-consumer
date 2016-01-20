@@ -52,7 +52,7 @@ import scala.util.control.NonFatal
  * @tparam V
  */
 abstract class SimpleKafkaConsumer[K, V](
-  val topic: String,
+    val topic: String,
     val kafkaConsumerProps: Properties,
     val keyDeserializer: Deserializer[K] = new StringDeserializer,
     val valueDeserializer: Deserializer[V] = new StringDeserializer,

@@ -1,12 +1,11 @@
 package pd.kafkaconsumer
 
 import org.apache.kafka.clients.consumer.ConsumerRecords
-import org.scalatest.{FreeSpec, Matchers}
-import pd.kafkaconsumer.testsupport.{KafkaConsumerSpec, ShutdownTestConsumer, TestConsumer, TestProducer}
+import org.scalatest.{ FreeSpec, Matchers }
+import pd.kafkaconsumer.testsupport.{ KafkaConsumerSpec, ShutdownTestConsumer, TestConsumer, TestProducer }
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
-
 
 class SimpleKafkaConsumerSpec extends FreeSpec with Matchers with KafkaConsumerSpec {
   protected val topic = "drc_it_topic"
@@ -130,7 +129,6 @@ class SimpleKafkaConsumerSpec extends FreeSpec with Matchers with KafkaConsumerS
 
     }
 
-
   def makeFailAndShutdownConsumer(): TestConsumer =
     new TestConsumer(topic, restartOnExceptionDelay = 1 second) {
       override protected def processMessage(key: String, value: String): Unit = {
@@ -139,10 +137,8 @@ class SimpleKafkaConsumerSpec extends FreeSpec with Matchers with KafkaConsumerS
       }
     }
 
-
   def makeConsumer(pollTimeout: Duration): ShutdownTestConsumer =
     new ShutdownTestConsumer(topic, pollTimeout = pollTimeout)
-
 
   def makeFailingConsumer(restartDelay: Duration): ShutdownTestConsumer =
     new ShutdownTestConsumer(topic, restartOnExceptionDelay = restartDelay) {
