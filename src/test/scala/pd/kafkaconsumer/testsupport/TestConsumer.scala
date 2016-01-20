@@ -8,12 +8,13 @@ import scala.concurrent.duration._
 object TestConsumerConfig {
   // Consumer group name
   val consumerGroup = "drc-it-consumer"
+  val kafkaClusterLookup = new KafkaClusterLookup("test")
 
   // Simple helper to create properties from the above. Note that
   // we don't cache the lookup, as it may always change.
   def makeProps = {
     val props = SimpleKafkaConsumer.makeProps(
-      KafkaClusterLookup.findBootstrapServer,
+      kafkaClusterLookup.findBootstrapServer,
       TestConsumerConfig.consumerGroup
     )
     // Make stuff fail a bit quicker than normal

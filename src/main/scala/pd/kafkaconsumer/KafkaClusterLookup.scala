@@ -7,8 +7,10 @@ import org.slf4j.LoggerFactory
  * service-finder library. Note that values returned from lookup calls can never be
  * cached - for every connection, a fresh lookup must be done so that a client is always
  * using the latest cluster state.
+ *
+ * @param clusterName the Kafka cluster base name; the environment will be deduced automatically
  */
-object KafkaClusterLookup {
+class KafkaClusterLookup(clusterName: String) {
   private val log = LoggerFactory.getLogger(this.getClass)
   private val tags = Map("production" -> "prod", "staging" -> "stg")
 

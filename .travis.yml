@@ -1,28 +1,30 @@
 branches:
   only:
-    - master
-#env:
-#  secure: "FIXME"
+  - master
 language: scala
 scala:
-  - 2.10.6
+- 2.10.6
 jdk:
-  - openjdk7
+- openjdk7
 sudo: false
+env:
+  global:
+    - secure: "lg01LdSpLoSI8BYb7NIRCA3Xhv06y9iT4G7QUJ3zLuG+7bmp5sVbfuHnFWoPZwE6A+ldS5wnBHozyEUmFn5eg1sXXT8EcCqtsXdX5Gjv5UcFAw4Y2NQT+8Ihg3Gp+6LKdxXJ3iOptuFnSS9bsKIk1WLO50xP0W4Eze5Ht4WvAcUIC24VdoLjRF5/UqlVEf90Lj+1FYNAidMayNXloSWQ6bylbwIvVEozUxKUQofe0YthFo7mk5CUiH8lLfyY/HNtJwLZFAWXsMbByq0y9PX+ld68lztx49Eu/FaR1ZVqgxw8gE4dnpoM3IMfcYzzYqfcG7WuTO/ITPQ6miKo0yJ/A15uuxnsIwLR1n+Ch4vpa9eIGg/mB1BY0mhWtaaPN6IUGlZT6A2FTDJ6GyCdNBiwqiGUh1KRm7J8OYS7pD6e+al/5zazoP/aKLnV9S31/X8kGiTKVM2xBJHZ2qzGYuZ+QYyYsSe9ODWNqpu61v1/Tj4PYBgRBhleT0h3QAe892E8sDQ4yAIVz170GKNkyjb/k7gGR67isKa00byxYjn+j50ID4Nj0fB/UzszTo7ciRCWNyooonbsjOqAPClRS05X7FahZOn7qQItaCsms3Td/VPHJx7nqeC3dcKcywKxvLLRSrnDnigFFjIwXAI9L0COsMl9lFjtfMHlbhfIMKreqFM="
 cache:
   directories:
-    - ~/.ivy2
-    - ~/kafka_2.11-0.9.0.0
+  - "~/.ivy2"
+  - "~/kafka_2.11-0.9.0.0"
   apt: true
 before_install:
-  - cd ~
-  - test -d kafka_2.11-0.9.0.0/bin || curl -s http://mirrors.ibiblio.org/apache/kafka/0.9.0.0/kafka_2.11-0.9.0.0.tgz | tar xvz
-  - cd $TRAVIS_BUILD_DIR
-  - cp .travisci/credentials.sbt ~/.sbt
-  - sed -i "s|%{password}|$ARTIFACTORY_PASS|" ~/.sbt/credentials.sbt
+- cd ~
+- test -d kafka_2.11-0.9.0.0/bin || curl -s http://mirrors.ibiblio.org/apache/kafka/0.9.0.0/kafka_2.11-0.9.0.0.tgz
+  | tar xvz
+- cd $TRAVIS_BUILD_DIR
+- cp .travisci/credentials.sbt ~/.sbt
+- sed -i "s|%{password}|$ARTIFACTORY_PASS|" ~/.sbt/credentials.sbt
 before_script:
-  - cd ~/kafka_2.11-0.9.0.0
-  - ./bin/zookeeper-server-start.sh config/zookeeper.properties & sleep 3
-  - ./bin/kafka-server/start.sh     config/server.properties    & sleep 5
-  - cd $TRAVIS_BUILD_DIR
-sbt_args: -Dsbt.log.noformat=true -sbt-dir ~/.sbt
+- cd ~/kafka_2.11-0.9.0.0
+- "./bin/zookeeper-server-start.sh config/zookeeper.properties & sleep 3"
+- "./bin/kafka-server/start.sh     config/server.properties    & sleep 5"
+- cd $TRAVIS_BUILD_DIR
+sbt_args: "-Dsbt.log.noformat=true -sbt-dir ~/.sbt"
