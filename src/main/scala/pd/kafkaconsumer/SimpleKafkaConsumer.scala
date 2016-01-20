@@ -79,7 +79,7 @@ abstract class SimpleKafkaConsumer[K, V](
    * Starts the polling thread. Once started, the consumer must be `shutdown()` to terminate.
    *
    * Any unhandled exceptions will cause the underlying Kafka consumer to be re-started after
-   * the specified `simple-consumer.restart-on-exception-delay` interval plus a random offset.
+   * the specified `restart-on-exception-delay` interval plus a random offset.
    */
   final def start(): Unit = lock.synchronized {
     if (isPollingThreadRunning) throw new IllegalStateException("Already running.")
@@ -122,7 +122,7 @@ abstract class SimpleKafkaConsumer[K, V](
    * batch will be eventually retried.
    *
    * Any unhandled exceptions will cause the underlying Kafka consumer to be re-started after
-   * the specified `simple-consumer.restart-on-exception-delay` interval plus a random offset.
+   * the specified `restart-on-exception-delay` interval plus a random offset.
    *
    * To prevent auto-restart, you may be tempted to explicitly call `shutdown()` from inside your
    * exception handler. However, doing this will shutdown the SimpleKafkaConsumer permanently,
