@@ -1,63 +1,64 @@
 package pd.kafkaconsumer
 
 import java.util.Properties
-import org.apache.kafka.clients.consumer.{ConsumerRebalanceListener, ConsumerRecords, KafkaConsumer}
+import org.apache.kafka.clients.consumer.{ ConsumerRebalanceListener, ConsumerRecords, KafkaConsumer }
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.WakeupException
-import org.apache.kafka.common.serialization.{Deserializer, StringDeserializer}
+import org.apache.kafka.common.serialization.{ Deserializer, StringDeserializer }
 import org.slf4j.LoggerFactory
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
-import scala.concurrent.{Future, promise}
+import scala.concurrent.{ Future, promise }
 import scala.util.Random
 import scala.util.control.NonFatal
 
 /**
-  * SimpleKafkaConsumer aims to abstract away low level Kafka polling and error handling details.
-  *
-  * All you have to do is extend this class and provide your own implementation of
-  * `processRecords(...)` method:
-  * {{{
-  * class MyConsumer extends SimpleKafkaConsumer(
-  *   myTopic, properties)
-  * {
-  *   override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {
-  *     for (record <- records) { println(record) }
-  *   }
-  * }
-  * }}}
-  *
-  * After instantiation, call the `start()` to begin polling the configured Kafka broker.
-  * Remember to call the `shutdown()` method in order to stop polling and release all the
-  * assigned partitions.
-  *
-  * {{{
-  *   val consumer = new MyConsumer
-  *   consumer.start()
-  *   ...
-  *   consumer.shutdown()
-  * }}}
-  *
-  * Any unhandled exceptions will cause the underlying Kafka consumer to be re-started after
-  * the specified `simple-consumer.restart-on-exception-delay` interval plus a random offset.
-  *
-  * @param topic  The Kafka topic to connect to
-  * @param kafkaConsumerProps Standard Kafka client Properties. It should contain "bootstrap.server"
-  *                           and "consumer.group" as a minimum.
-  * @param keyDeserializer Optional key deserializer, by default String-based
-  * @param valueDeserializer Optional value deserializer, by default String-based
-  * @param pollTimeout Optional timeout for the Kafka client poll() call
-  * @param restartOnExceptionDelay Optional sleep time before reconnecting on an exception
-  * @tparam K
-  * @tparam V
-  */
-abstract class SimpleKafkaConsumer[K, V](val topic: String,
-                                         val kafkaConsumerProps: Properties,
-                                         val keyDeserializer: Deserializer[K] = new StringDeserializer,
-                                         val valueDeserializer: Deserializer[V] = new StringDeserializer,
-                                         val pollTimeout: Duration = SimpleKafkaConsumer.pollTimeout,
-                                         val restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay)
-{
+ * SimpleKafkaConsumer aims to abstract away low level Kafka polling and error handling details.
+ *
+ * All you have to do is extend this class and provide your own implementation of
+ * `processRecords(...)` method:
+ * {{{
+ * class MyConsumer extends SimpleKafkaConsumer(
+ *   myTopic, properties)
+ * {
+ *   override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {
+ *     for (record <- records) { println(record) }
+ *   }
+ * }
+ * }}}
+ *
+ * After instantiation, call the `start()` to begin polling the configured Kafka broker.
+ * Remember to call the `shutdown()` method in order to stop polling and release all the
+ * assigned partitions.
+ *
+ * {{{
+ *   val consumer = new MyConsumer
+ *   consumer.start()
+ *   ...
+ *   consumer.shutdown()
+ * }}}
+ *
+ * Any unhandled exceptions will cause the underlying Kafka consumer to be re-started after
+ * the specified `simple-consumer.restart-on-exception-delay` interval plus a random offset.
+ *
+ * @param topic  The Kafka topic to connect to
+ * @param kafkaConsumerProps Standard Kafka client Properties. It should contain "bootstrap.server"
+ *                           and "consumer.group" as a minimum.
+ * @param keyDeserializer Optional key deserializer, by default String-based
+ * @param valueDeserializer Optional value deserializer, by default String-based
+ * @param pollTimeout Optional timeout for the Kafka client poll() call
+ * @param restartOnExceptionDelay Optional sleep time before reconnecting on an exception
+ * @tparam K
+ * @tparam V
+ */
+abstract class SimpleKafkaConsumer[K, V](
+  val topic: String,
+    val kafkaConsumerProps: Properties,
+    val keyDeserializer: Deserializer[K] = new StringDeserializer,
+    val valueDeserializer: Deserializer[V] = new StringDeserializer,
+    val pollTimeout: Duration = SimpleKafkaConsumer.pollTimeout,
+    val restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay
+) {
   protected val log = LoggerFactory.getLogger(this.getClass)
 
   private val lock = new Object
@@ -67,19 +68,19 @@ abstract class SimpleKafkaConsumer[K, V](val topic: String,
   @volatile private var isPollingThreadRunning = false
 
   /**
-    * SimpleKafkaConsumer is considered to be `terminated` after `shutdown()` has been called
-    * and the polling thread has stopped.
-    *
-    * @return true when the polling thread has stopped after a call to `shutdown()`
-    */
+   * SimpleKafkaConsumer is considered to be `terminated` after `shutdown()` has been called
+   * and the polling thread has stopped.
+   *
+   * @return true when the polling thread has stopped after a call to `shutdown()`
+   */
   final def hasTerminated = shutdownRequested && !isPollingThreadRunning
 
   /**
-    * Starts the polling thread. Once started, the consumer must be `shutdown()` to terminate.
-    *
-    * Any unhandled exceptions will cause the underlying Kafka consumer to be re-started after
-    * the specified `simple-consumer.restart-on-exception-delay` interval plus a random offset.
-    */
+   * Starts the polling thread. Once started, the consumer must be `shutdown()` to terminate.
+   *
+   * Any unhandled exceptions will cause the underlying Kafka consumer to be re-started after
+   * the specified `simple-consumer.restart-on-exception-delay` interval plus a random offset.
+   */
   final def start(): Unit = lock.synchronized {
     if (isPollingThreadRunning) throw new IllegalStateException("Already running.")
     if (shutdownPromise.isCompleted) throw new IllegalStateException("Was shutdown.")
@@ -91,8 +92,7 @@ abstract class SimpleKafkaConsumer[K, V](val topic: String,
       override def run(): Unit = {
         try {
           backoffOnUnhandledExceptionLoop()
-        }
-        finally {
+        } finally {
           log.info("Shutting down polling thread.")
           lock.synchronized {
             isPollingThreadRunning = false
@@ -104,10 +104,10 @@ abstract class SimpleKafkaConsumer[K, V](val topic: String,
   }
 
   /**
-    * Will cause the polling thread to shutdown.
-    *
-    * @return a future that will becomes complete when shutdown is finished
-    */
+   * Will cause the polling thread to shutdown.
+   *
+   * @return a future that will becomes complete when shutdown is finished
+   */
   final def shutdown(): Future[Unit] = lock.synchronized {
     shutdownRequested = true
     currentKafkaConsumer.foreach(_.wakeup())
@@ -116,29 +116,29 @@ abstract class SimpleKafkaConsumer[K, V](val topic: String,
   }
 
   /**
-    * This is the only method you need to implement in order to start consuming messages using
-    * SimpleKafkaConsumer. The consumer offset is committed after every successful invocation
-    * of this method. If this method throws and exception, all of the records in the failed
-    * batch will be eventually retried.
-    *
-    * Any unhandled exceptions will cause the underlying Kafka consumer to be re-started after
-    * the specified `simple-consumer.restart-on-exception-delay` interval plus a random offset.
-    *
-    * To prevent auto-restart, you may be tempted to explicitly call `shutdown()` from inside your
-    * exception handler. However, doing this will shutdown the SimpleKafkaConsumer permanently,
-    * leaving your application in a degraded state.
-    *
-    * @param records result of polling Kafka, may be empty
-    */
+   * This is the only method you need to implement in order to start consuming messages using
+   * SimpleKafkaConsumer. The consumer offset is committed after every successful invocation
+   * of this method. If this method throws and exception, all of the records in the failed
+   * batch will be eventually retried.
+   *
+   * Any unhandled exceptions will cause the underlying Kafka consumer to be re-started after
+   * the specified `simple-consumer.restart-on-exception-delay` interval plus a random offset.
+   *
+   * To prevent auto-restart, you may be tempted to explicitly call `shutdown()` from inside your
+   * exception handler. However, doing this will shutdown the SimpleKafkaConsumer permanently,
+   * leaving your application in a degraded state.
+   *
+   * @param records result of polling Kafka, may be empty
+   */
   protected def processRecords(records: ConsumerRecords[K, V]): Unit
 
   /**
-    * Allows to inject custom ConsumerRebalanceListener. The listener code runs on the polling
-    * thread, as described in
-    * [[http://kafka.apache.org/090/javadoc/org/apache/kafka/clients/consumer/ConsumerRebalanceListener.html Kafka documentation]]
-    *
-    * @return an instance of ConsumerRebalanceListener
-    */
+   * Allows to inject custom ConsumerRebalanceListener. The listener code runs on the polling
+   * thread, as described in
+   * [[http://kafka.apache.org/090/javadoc/org/apache/kafka/clients/consumer/ConsumerRebalanceListener.html Kafka documentation]]
+   *
+   * @return an instance of ConsumerRebalanceListener
+   */
   protected def makeRebalanceListener(): ConsumerRebalanceListener = {
     new LoggingRebalanceListener(topic, log) {
       override protected def logNewAssignment(partitions: Set[TopicPartition]): Unit = {
@@ -152,8 +152,7 @@ abstract class SimpleKafkaConsumer[K, V](val topic: String,
     while (!shutdownRequested) {
       try {
         initializeConsumerAndEnterPollLoop()
-      }
-      catch {
+      } catch {
         case NonFatal(e) =>
           logExceptionAndDelayRestart(e)
 
@@ -170,12 +169,10 @@ abstract class SimpleKafkaConsumer[K, V](val topic: String,
       currentKafkaConsumer = Some(makeKafkaConsumer())
       initializeKafkaConsumer(currentKafkaConsumer.get)
       pollLoop(currentKafkaConsumer.get)
-    }
-    catch {
+    } catch {
       case e: WakeupException if shutdownRequested =>
       // This is expected, suppress the exception and exit the loop.
-    }
-    finally {
+    } finally {
       log.info("Stopping Kafka consumer.")
       currentKafkaConsumer.foreach(_.close())
       currentKafkaConsumer = None
@@ -209,8 +206,7 @@ abstract class SimpleKafkaConsumer[K, V](val topic: String,
       lock.synchronized {
         if (!shutdownRequested) lock.wait(sleepDuration.toMillis)
       }
-    }
-    catch {
+    } catch {
       case e: InterruptedException =>
       // This is expected, suppress the exception and return.
     }
