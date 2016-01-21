@@ -12,3 +12,8 @@ lazy val root = (project in file(".")).
       "com.pagerduty" %% "service-finder" % "1.0.1",
       "org.scalactic" %% "scalactic" % "2.2.6",
       "org.scalatest" %% "scalatest" % "2.2.6"))
+
+resolvers ++= Seq(
+  Resolver.url(
+    "artifactory-pagerduty-ivy",
+    url("https://pagerduty.artifactoryonline.com/pagerduty/all/"))(Resolver.ivyStylePatterns))
