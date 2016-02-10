@@ -108,7 +108,7 @@ abstract class SimpleKafkaConsumer[K, V](
    *
    * @return a future that will becomes complete when shutdown is finished
    */
-  final def shutdown(): Future[Unit] = lock.synchronized {
+  def shutdown(): Future[Unit] = lock.synchronized {
     shutdownRequested = true
     currentKafkaConsumer.foreach(_.wakeup())
     lock.notifyAll()
