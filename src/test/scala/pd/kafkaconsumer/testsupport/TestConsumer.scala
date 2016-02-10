@@ -47,7 +47,7 @@ class TestConsumer(
     }
   }
 
-  protected def processRecords(records: ConsumerRecords[String, String]): Unit = {
+  override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {
     for (record <- records) {
       processMessage(record.key, record.value)
     }
