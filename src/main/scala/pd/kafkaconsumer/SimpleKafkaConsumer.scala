@@ -236,7 +236,7 @@ object SimpleKafkaConsumer {
   /** Default poll timeout */
   val pollTimeout: Duration = 1 second
   /** Default restart delay */
-  val restartOnExceptionDelay: Duration = 60 seconds
+  val restartOnExceptionDelay: Duration = 5 seconds
 
   /** Helper to create basic properties */
   def makeProps(bootstrapServer: String, consumerGroup: String): Properties = {
