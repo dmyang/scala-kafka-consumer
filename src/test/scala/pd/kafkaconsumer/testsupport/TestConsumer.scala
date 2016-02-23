@@ -20,6 +20,7 @@ object TestConsumerConfig {
     // Make stuff fail a bit quicker than normal
     props.put("session.timeout.ms", "6000")
     props.put("heartbeat.interval.ms", "1000")
+    props.put("auto.offset.reset", "earliest")
     props
   }
 }
@@ -49,6 +50,7 @@ class TestConsumer(
 
   override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {
     for (record <- records) {
+      log.debug(s"process ${record.topic}/${record.partition}/${record.offset}: ${record.key}=${record.value}")
       processMessage(record.key, record.value)
     }
 
@@ -67,7 +69,10 @@ trait ConsumerTestHelper { self: SimpleKafkaConsumer[_, _] =>
 
   protected def autoShutdownWhenInactive(pollResultsCount: Int): Unit = {
     if (pollResultsCount == 0) emptyPollCount += 1 else emptyPollCount = 0
-    if (emptyPollCount > maxEmptyPollCount) shutdown()
+    if (emptyPollCount > maxEmptyPollCount) {
+      log.info("Shutting down consumer due to inactivity.")
+      shutdown()
+    }
   }
 
   def awaitTermination(): Unit = {

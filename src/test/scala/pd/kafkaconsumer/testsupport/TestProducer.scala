@@ -1,7 +1,7 @@
 package pd.kafkaconsumer.testsupport
 
 import java.util.Properties
-import org.apache.kafka.clients.producer.{ KafkaProducer, ProducerRecord }
+import org.apache.kafka.clients.producer.{ RecordMetadata, KafkaProducer, ProducerRecord }
 import org.slf4j.LoggerFactory
 
 class TestProducer(val topic: String) {
@@ -23,8 +23,8 @@ class TestProducer(val topic: String) {
 
   def send(key: String, message: String): Unit = {
     val future = producer.send(new ProducerRecord(topic, key, message))
-    future.get()
-    log.debug(s"Sent message with key $key")
+    val result = future.get()
+    log.debug(s"Sent message with key $key as ${result.topic}/${result.partition}/${result.offset}")
   }
 
   def shutdown(): Unit = {

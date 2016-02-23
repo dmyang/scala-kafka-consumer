@@ -16,8 +16,8 @@ cache:
   - ~/travis-deps
   apt: true
 before_install:
-  - curl https://raw.githubusercontent.com/PagerDuty/pd-travis-deps/master/zookeeper | /bin/sh 
-  - curl https://raw.githubusercontent.com/PagerDuty/pd-travis-deps/core-412-bump-kafka-to-0.9.0.1/kafka | /bin/sh 
+  - curl https://raw.githubusercontent.com/PagerDuty/pd-travis-deps/master/zookeeper | /bin/sh
+  - curl https://raw.githubusercontent.com/PagerDuty/pd-travis-deps/master/kafka | /bin/sh
   - cp .travisci/credentials.sbt ~/.sbt
   - sed -i "s|%{password}|$ARTIFACTORY_PASS|" ~/.sbt/credentials.sbt
 before_script:
