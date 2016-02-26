@@ -24,3 +24,5 @@ before_script:
   - ~/travis-deps/start-zookeeper.sh && sleep 3
   - ~/travis-deps/start-kafka.sh && sleep 3
 sbt_args: "-Dsbt.log.noformat=true -sbt-dir ~/.sbt"
+after_success:
+- sh "$TRAVIS_BUILD_DIR/.travis.release.sh"

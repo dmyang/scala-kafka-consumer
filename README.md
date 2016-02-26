@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.com/PagerDuty/pd-kafka-consumer.svg?token=7Mi8LhmhpJYhzs4euq1w&branch=master)](https://travis-ci.com/PagerDuty/pd-kafka-consumer)
-
-# PagerDuty Kafka Consumer
+# PagerDuty Kafka Consumer [![Build Status](https://travis-ci.com/PagerDuty/pd-kafka-consumer.svg?token=7Mi8LhmhpJYhzs4euq1w&branch=master)](https://travis-ci.com/PagerDuty/pd-kafka-consumer/builds)
 
 This is an opinionated wrapper around the Kafka consumer, adding a default set
 of policies/interactions. It also specifies the version of the Kafka client
@@ -32,9 +30,16 @@ Very basic sbt setup. For now, all tests are integration tests but run during th
 regular "test" phase, so before doing `sbt test` make sure a Kafka and Zookeeper
 instance are running on the local machine.
 
+## Release
+
+Follow these steps to release a new version:
+ - Update version.sbt in your PR
+ - Update CHANGELOG.md in your PR
+ - When the PR is approved, merge it to master, and delete the branch
+ - Travis will run all tests, publish to Artifactory, and create a new version tag in Github
+
 ## Ownership
 
 This library is owned by the Core team. Hop on 
 [#core-contemplations](https://pagerduty.slack.com/messages/core-contemplations/)
 on Slack for help and more info.
-
