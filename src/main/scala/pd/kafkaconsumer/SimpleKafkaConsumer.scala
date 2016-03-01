@@ -247,7 +247,7 @@ object SimpleKafkaConsumer {
     // down, but for a single consumer process it's actually not too important - if you
     // consume a single topic, you'll save this times partitions in memory which is usually
     // a big "meh".
-    props.put("max.partition.fetch.bytes", ((3 * 1024 * 1024) + 50000).toString)
+    props.put("max.partition.fetch.bytes", ((4 * 1024 * 1024) + 50000).toString)
     props
   }
 }
