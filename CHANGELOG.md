@@ -1,3 +1,8 @@
+0.1.7
+=====
+
+* Actually use the clusterName parameter when looking up a Kafka cluster
+
 0.1.6
 =====
 

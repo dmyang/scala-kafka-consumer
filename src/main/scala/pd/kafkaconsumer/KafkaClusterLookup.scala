@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
  */
 class KafkaClusterLookup(clusterName: String) {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private val tags = Map("production" -> "prod", "staging" -> "stg")
+  private val tags = Map("production" -> "prod", "staging" -> "stg", "load_test" -> "lt")
 
   /**
    * Find the Kafka bootstrap server. This will return localhost:9292 for
@@ -34,7 +34,7 @@ class KafkaClusterLookup(clusterName: String) {
     !(environment == null || environment == "development")
   }
 
-  def tagFor(environment: String): String = s"${tags.getOrElse(environment, environment)}-datahose"
+  def tagFor(environment: String) = s"${tags.getOrElse(environment, environment)}-${clusterName}"
 
   def lookupHostPort(lookupName: String): String = {
     val finder = pd.dns.finder.serviceFinder()
