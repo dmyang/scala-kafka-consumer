@@ -15,15 +15,17 @@ class KafkaClusterLookup(clusterName: String) {
   private val log = LoggerFactory.getLogger(this.getClass)
   private val tags = Map("production" -> "prod", "staging" -> "stg", "load_test" -> "lt")
 
+  import KafkaClusterLookup._
+
   /**
    * Find the Kafka bootstrap server. This will return localhost:9292 for
    * development environments, and the kafka cluster with the correct
    * tag for other environments.
    * @return a hostname:port string pointing to a bootstrap node.
    */
-  def findBootstrapServer: String = {
+  def findBootstrapServer(finder: EnvironmentFinder = EnvironmentFinder): String = {
 
-    val environment = KafkaClusterLookup.EnvironmentFinder.findEnvironment
+    val environment = finder.findEnvironment
     if (canLookupInEnvironment(environment)) {
       lookupHostPort(s"${tagFor(environment)}.kafka.service.consul")
     } else {
