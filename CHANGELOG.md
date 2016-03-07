@@ -1,3 +1,8 @@
+0.1.6
+=====
+
+* Drop slf4j-simple as a regular dependency
+
 0.1.5
 =====
 
