@@ -1,5 +1,6 @@
 package pd.kafkaconsumer
 
+import pd.dns.finder._
 import org.slf4j.LoggerFactory
 
 /**
@@ -22,7 +23,7 @@ class KafkaClusterLookup(clusterName: String) {
    */
   def findBootstrapServer: String = {
 
-    val environment = System.getenv("PD_ENV")
+    val environment = KafkaClusterLookup.EnvironmentFinder.findEnvironment
     if (canLookupInEnvironment(environment)) {
       lookupHostPort(s"${tagFor(environment)}.kafka.service.consul")
     } else {
@@ -30,17 +31,29 @@ class KafkaClusterLookup(clusterName: String) {
     }
   }
 
-  def canLookupInEnvironment(environment: String): Boolean = {
+  private def canLookupInEnvironment(environment: String): Boolean = {
     !(environment == null || environment == "development")
   }
 
-  def tagFor(environment: String) = s"${tags.getOrElse(environment, environment)}-${clusterName}"
+  private[kafkaconsumer] def tagFor(environment: String) =
+    s"${tags.getOrElse(environment, environment)}-${clusterName}"
 
-  def lookupHostPort(lookupName: String): String = {
-    val finder = pd.dns.finder.serviceFinder()
+  private[kafkaconsumer] def lookupHostPort(
+    lookupName: String, finder: ServiceFinder = serviceFinder()
+  ): String = {
     val (host, port) = finder.find(lookupName)
     val hostPort = s"$host:$port"
     log.info(s"Service lookup: $lookupName => $hostPort")
     hostPort
+  }
+}
+
+object KafkaClusterLookup {
+  trait EnvironmentFinder {
+    def findEnvironment: String
+  }
+
+  object EnvironmentFinder extends EnvironmentFinder {
+    def findEnvironment = System.getenv("PD_ENV")
   }
 }
