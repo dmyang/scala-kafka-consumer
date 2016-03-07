@@ -12,6 +12,7 @@ lazy val root = (project in file(".")).
       "org.slf4j" % "slf4j-simple" % "1.7.12" % "test",
       "com.pagerduty" %% "service-finder" % "1.0.1",
       "org.scalactic" %% "scalactic" % "2.2.6",
+      "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2",
       "org.scalatest" %% "scalatest" % "2.2.6"))
 
 resolvers ++= Seq(

@@ -1,5 +1,6 @@
 package pd.kafkaconsumer
 
+import pd.dns.finder._
 import org.slf4j.LoggerFactory
 
 /**
@@ -12,7 +13,9 @@ import org.slf4j.LoggerFactory
  */
 class KafkaClusterLookup(clusterName: String) {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private val tags = Map("production" -> "prod", "staging" -> "stg")
+  private val tags = Map("production" -> "prod", "staging" -> "stg", "load_test" -> "lt")
+
+  import KafkaClusterLookup._
 
   /**
    * Find the Kafka bootstrap server. This will return localhost:9292 for
@@ -20,9 +23,9 @@ class KafkaClusterLookup(clusterName: String) {
    * tag for other environments.
    * @return a hostname:port string pointing to a bootstrap node.
    */
-  def findBootstrapServer: String = {
+  def findBootstrapServer(finder: EnvironmentFinder = EnvironmentFinder): String = {
 
-    val environment = System.getenv("PD_ENV")
+    val environment = finder.findEnvironment
     if (canLookupInEnvironment(environment)) {
       lookupHostPort(s"${tagFor(environment)}.kafka.service.consul")
     } else {
@@ -30,17 +33,29 @@ class KafkaClusterLookup(clusterName: String) {
     }
   }
 
-  def canLookupInEnvironment(environment: String): Boolean = {
+  private def canLookupInEnvironment(environment: String): Boolean = {
     !(environment == null || environment == "development")
   }
 
-  def tagFor(environment: String): String = s"${tags.getOrElse(environment, environment)}-datahose"
+  private[kafkaconsumer] def tagFor(environment: String) =
+    s"${tags.getOrElse(environment, environment)}-${clusterName}"
 
-  def lookupHostPort(lookupName: String): String = {
-    val finder = pd.dns.finder.serviceFinder()
+  private[kafkaconsumer] def lookupHostPort(
+    lookupName: String, finder: ServiceFinder = serviceFinder()
+  ): String = {
     val (host, port) = finder.find(lookupName)
     val hostPort = s"$host:$port"
     log.info(s"Service lookup: $lookupName => $hostPort")
     hostPort
+  }
+}
+
+object KafkaClusterLookup {
+  trait EnvironmentFinder {
+    def findEnvironment: String
+  }
+
+  object EnvironmentFinder extends EnvironmentFinder {
+    def findEnvironment = System.getenv("PD_ENV")
   }
 }

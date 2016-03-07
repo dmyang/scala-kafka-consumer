@@ -14,7 +14,7 @@ object TestConsumerConfig {
   // we don't cache the lookup, as it may always change.
   def makeProps = {
     val props = SimpleKafkaConsumer.makeProps(
-      kafkaClusterLookup.findBootstrapServer,
+      kafkaClusterLookup.findBootstrapServer(),
       TestConsumerConfig.consumerGroup
     )
     // Make stuff fail a bit quicker than normal
