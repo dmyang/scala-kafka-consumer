@@ -239,7 +239,11 @@ object SimpleKafkaConsumer {
   val restartOnExceptionDelay: Duration = 5 seconds
 
   /** Helper to create basic properties */
-  def makeProps(bootstrapServer: String, consumerGroup: String): Properties = {
+  def makeProps(
+    bootstrapServer: String,
+    consumerGroup: String,
+    maxPartitionFetchBytes: Int
+  ): Properties = {
     val props = new Properties()
     props.put("group.id", consumerGroup)
     props.put("bootstrap.servers", bootstrapServer)
@@ -247,7 +251,7 @@ object SimpleKafkaConsumer {
     // down, but for a single consumer process it's actually not too important - if you
     // consume a single topic, you'll save this times partitions in memory which is usually
     // a big "meh".
-    props.put("max.partition.fetch.bytes", ((4 * 1024 * 1024) + 50000).toString)
+    props.put("max.partition.fetch.bytes", maxPartitionFetchBytes.toString)
     props
   }
 }

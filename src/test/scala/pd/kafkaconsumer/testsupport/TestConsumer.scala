@@ -16,7 +16,8 @@ object TestConsumerConfig {
   def makeProps = {
     val props = SimpleKafkaConsumer.makeProps(
       kafkaClusterLookup.findBootstrapServer(),
-      TestConsumerConfig.consumerGroup
+      TestConsumerConfig.consumerGroup,
+      (4 * 1024 * 1024) + 50000
     )
     // Make stuff fail a bit quicker than normal
     props.put("session.timeout.ms", "6000")
