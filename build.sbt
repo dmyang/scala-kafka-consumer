@@ -10,7 +10,6 @@ lazy val root = (project in file(".")).
       "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
       "org.slf4j" % "slf4j-api" % "1.7.12",
       "org.slf4j" % "slf4j-simple" % "1.7.12" % "test",
-      "com.pagerduty" %% "service-finder" % "1.0.2",
       "org.scalactic" %% "scalactic" % "2.2.6",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2",
       "org.scalatest" %% "scalatest" % "2.2.6"))
