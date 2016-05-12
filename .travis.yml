@@ -23,6 +23,7 @@ before_install:
 before_script:
   - ~/travis-deps/start-zookeeper.sh && sleep 3
   - ~/travis-deps/start-kafka.sh && sleep 3
-sbt_args: "-Dsbt.log.noformat=true -sbt-dir ~/.sbt"
+script:
+  - sbt -Dsbt.log.noformat=true -sbt-dir ~/.sbt ++$TRAVIS_SCALA_VERSION test it:test
 after_success:
 - sh "$TRAVIS_BUILD_DIR/.travis.release.sh"
