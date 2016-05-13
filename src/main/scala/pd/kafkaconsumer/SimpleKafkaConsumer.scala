@@ -1,14 +1,15 @@
 package pd.kafkaconsumer
 
 import java.util.Properties
-import org.apache.kafka.clients.consumer.{ ConsumerRebalanceListener, ConsumerRecords, KafkaConsumer }
+import java.util.concurrent.{ ThreadFactory, Executors, TimeoutException }
+import org.apache.kafka.clients.consumer._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.WakeupException
 import org.apache.kafka.common.serialization.{ Deserializer, StringDeserializer }
 import org.slf4j.LoggerFactory
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
-import scala.concurrent.{ Future, promise }
+import scala.concurrent._
 import scala.util.Random
 import scala.util.control.NonFatal
 
@@ -57,7 +58,8 @@ abstract class SimpleKafkaConsumer[K, V](
     val keyDeserializer: Deserializer[K] = new StringDeserializer,
     val valueDeserializer: Deserializer[V] = new StringDeserializer,
     val pollTimeout: Duration = SimpleKafkaConsumer.pollTimeout,
-    val restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay
+    val restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay,
+    val commitOffsetTimeout: Duration = SimpleKafkaConsumer.commitOffsetTimeout
 ) {
   protected val log = LoggerFactory.getLogger(this.getClass)
 
@@ -66,6 +68,16 @@ abstract class SimpleKafkaConsumer[K, V](
   @volatile private var shutdownRequested = false
   @volatile private var currentKafkaConsumer: Option[KafkaConsumer[K, V]] = None
   @volatile private var isPollingThreadRunning = false
+
+  /**
+   * Calculates how long `onPartitionRevoked()` should block for to avoid split brain scenarios.
+   * @param maxMessageProcessingDuration maximum time allowance to process messages before
+   *                                     an exception is thrown
+   * @return
+   */
+  protected def minIsolationDetectionDuration(maxMessageProcessingDuration: Duration): Duration = {
+    pollTimeout + maxMessageProcessingDuration + commitOffsetTimeout
+  }
 
   /**
    * SimpleKafkaConsumer is considered to be `terminated` after `shutdown()` has been called
@@ -133,6 +145,11 @@ abstract class SimpleKafkaConsumer[K, V](
   protected def processRecords(records: ConsumerRecords[K, V]): Unit
 
   /**
+   * Shutdown any custom resources.
+   */
+  protected def shutdownResources(): Unit = {}
+
+  /**
    * Allows to inject custom ConsumerRebalanceListener. The listener code runs on the polling
    * thread, as described in
    * [[http://kafka.apache.org/090/javadoc/org/apache/kafka/clients/consumer/ConsumerRebalanceListener.html Kafka documentation]]
@@ -174,6 +191,7 @@ abstract class SimpleKafkaConsumer[K, V](
       // This is expected, suppress the exception and exit the loop.
     } finally {
       log.info("Stopping Kafka consumer.")
+      shutdownResources()
       currentKafkaConsumer.foreach(_.close())
       currentKafkaConsumer = None
       setCurrentThreadDescription("stopped")
@@ -189,7 +207,44 @@ abstract class SimpleKafkaConsumer[K, V](
   private def pollKafkaConsumer(kafkaConsumer: KafkaConsumer[K, V]): Unit = {
     val records = kafkaConsumer.poll(pollTimeout.toMillis)
     processRecords(records)
-    if (!records.isEmpty) kafkaConsumer.commitSync()
+    syncCommitOffset(kafkaConsumer)
+  }
+
+  private def syncCommitOffset(kafkaConsumer: KafkaConsumer[K, V]): Unit = {
+    implicit val executionContext = waitThreadExecutor
+    val commitOffsetFuture = Future {
+      scala.concurrent.blocking {
+        // TODO: We should look into using `commitAsync` once Kafka consumer 1.0 is out.
+        // Sadly, kafkaConsumer.commitAsync(callback) never completes the callback.
+        // So we are using this as a workaround for now.
+        kafkaConsumer.commitSync()
+      }
+    }
+
+    try {
+      Await.result(commitOffsetFuture, commitOffsetTimeout)
+    } catch {
+      case e: TimeoutException =>
+        commitOffsetFuture.onComplete { _ =>
+          kafkaConsumer.close()
+        }
+        shutdownResources()
+        currentKafkaConsumer = None
+        throw e
+    }
+  }
+
+  private val waitThreadExecutor: ExecutionContext = {
+    val threadFactory = new ThreadFactory {
+      override def newThread(r: Runnable): Thread = {
+        val thread = Executors.defaultThreadFactory().newThread(r)
+        thread.setName(s"WaiterThread${thread.getId}")
+        thread.setDaemon(true)
+        thread
+      }
+    }
+    val executorService = Executors.newFixedThreadPool(2, threadFactory)
+    ExecutionContext.fromExecutorService(executorService)
   }
 
   private def logExceptionAndDelayRestart(exception: Throwable): Unit = {
@@ -237,6 +292,8 @@ object SimpleKafkaConsumer {
   val pollTimeout: Duration = 1 second
   /** Default restart delay */
   val restartOnExceptionDelay: Duration = 5 seconds
+  /** Default commit offset timeout */
+  val commitOffsetTimeout: Duration = 5 seconds
 
   /** Helper to create basic properties */
   def makeProps(bootstrapServer: String, consumerGroup: String): Properties = {
