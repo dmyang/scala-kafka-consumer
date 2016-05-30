@@ -1,4 +1,5 @@
 publishArtifact in Test := true
+crossScalaVersions := Seq("2.10.6", "2.11.7")
 
 lazy val root = (project in file(".")).
   configs(IntegrationTest).
@@ -7,7 +8,6 @@ lazy val root = (project in file(".")).
     organization := "com.pagerduty",
     name := "pd-kafka-consumer",
     version := "0.1.0",
-    scalaVersion := "2.10.6",
     libraryDependencies ++= Seq(
       "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
       "org.slf4j" % "slf4j-api" % "1.7.12",
