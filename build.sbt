@@ -1,4 +1,5 @@
 publishArtifact in Test := true
+crossScalaVersions := Seq("2.10.6", "2.11.7")
 
 lazy val root = (project in file(".")).
   configs(IntegrationTest).
