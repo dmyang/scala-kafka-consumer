@@ -10,6 +10,7 @@ lazy val root = (project in file(".")).
     version := "0.1.0",
     scalaVersion := "2.10.6",
     libraryDependencies ++= Seq(
+      "com.pagerduty" %% "pd-stats" % "1.0.0",
       "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
       "org.slf4j" % "slf4j-api" % "1.7.12",
       "org.slf4j" % "slf4j-simple" % "1.7.12" % "it,test",

@@ -1,7 +1,7 @@
 package pd.kafkaconsumer
 
 import java.util.Properties
-import java.util.concurrent.{ ThreadFactory, Executors, TimeoutException }
+import java.util.concurrent.{ Executors, ThreadFactory, TimeoutException }
 import org.apache.kafka.clients.consumer._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.WakeupException
@@ -59,7 +59,8 @@ abstract class SimpleKafkaConsumer[K, V](
     val valueDeserializer: Deserializer[V] = new StringDeserializer,
     val pollTimeout: Duration = SimpleKafkaConsumer.pollTimeout,
     val restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay,
-    val commitOffsetTimeout: Duration = SimpleKafkaConsumer.commitOffsetTimeout
+    val commitOffsetTimeout: Duration = SimpleKafkaConsumer.commitOffsetTimeout,
+    val metrics: ConsumerMetrics = PdStatsBasedConsumerMetrics
 ) {
   protected val log = LoggerFactory.getLogger(this.getClass)
 
@@ -71,6 +72,7 @@ abstract class SimpleKafkaConsumer[K, V](
 
   /**
    * Calculates how long `onPartitionRevoked()` should block for to avoid split brain scenarios.
+   *
    * @param maxMessageProcessingDuration maximum time allowance to process messages before
    *                                     an exception is thrown
    * @return
@@ -217,7 +219,9 @@ abstract class SimpleKafkaConsumer[K, V](
         // TODO: We should look into using `commitAsync` once Kafka consumer 1.0 is out.
         // Sadly, kafkaConsumer.commitAsync(callback) never completes the callback.
         // So we are using this as a workaround for now.
-        kafkaConsumer.commitSync()
+        metrics.timeCommitSync {
+          kafkaConsumer.commitSync()
+        }
       }
     }
 
@@ -307,4 +311,22 @@ object SimpleKafkaConsumer {
     props.put("max.partition.fetch.bytes", ((4 * 1024 * 1024) + 50000).toString)
     props
   }
+}
+
+/**
+ * A metrics sink for PdKafkaConsumer. Provide an implementation of leave the dummy version
+ * to not collect metrics.
+ */
+trait ConsumerMetrics {
+  def timeCommitSync(f: => Unit): Unit
+}
+
+/**
+ * Metrics implementation using PdStats. Not even pretending we can instantiate more than
+ * one of this.
+ */
+object PdStatsBasedConsumerMetrics extends ConsumerMetrics {
+  import com.pagerduty.stats.PdStats
+
+  override def timeCommitSync(f: => Unit): Unit = PdStats.time("kafka_consumer.commit_sync")(f)
 }
