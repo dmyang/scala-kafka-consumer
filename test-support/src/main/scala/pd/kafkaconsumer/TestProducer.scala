@@ -1,4 +1,4 @@
-package pd.kafkaconsumer.testsupport
+package pd.kafkaconsumer
 
 import java.util.Properties
 import org.apache.kafka.clients.producer.{ RecordMetadata, KafkaProducer, ProducerRecord }

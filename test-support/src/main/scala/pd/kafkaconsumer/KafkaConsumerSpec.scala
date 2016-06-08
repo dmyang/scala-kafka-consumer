@@ -1,4 +1,4 @@
-package pd.kafkaconsumer.testsupport
+package pd.kafkaconsumer
 
 import org.scalatest._
 import org.slf4j.LoggerFactory

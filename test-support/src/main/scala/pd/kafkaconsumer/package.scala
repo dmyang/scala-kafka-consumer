@@ -1,4 +1,4 @@
-package pd.kafkaconsumer
+package pd
 
 /**
  * This package exports support code for tests that
@@ -7,4 +7,4 @@ package pd.kafkaconsumer
  * library so you can cleanly separate dependencies for
  * testing and dependencies for run-time.
  */
-package object testsupport
+package object kafkaconsumer

@@ -1,8 +1,8 @@
 package pd.kafkaconsumer
 
 import org.apache.kafka.clients.consumer.ConsumerRecords
-import org.scalatest.{ FreeSpec, Matchers }
-import pd.kafkaconsumer.testsupport.{ KafkaConsumerSpec, ShutdownTestConsumer, TestConsumer, TestProducer }
+import org.scalatest.{FreeSpec, Matchers}
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps

@@ -1,4 +1,4 @@
-package pd.kafkaconsumer.testsupport
+package pd.kafkaconsumer
 
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import pd.kafkaconsumer.SimpleKafkaConsumer
