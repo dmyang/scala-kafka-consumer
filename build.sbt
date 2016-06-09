@@ -16,7 +16,7 @@ lazy val publishSettings = Seq(
 
 lazy val sharedSettings = Seq(
   organization := "com.pagerduty",
-  version := "0.2.5",
+  version := "0.2.6",
   scalaVersion := "2.10.6",
   crossScalaVersions := Seq("2.10.6", "2.11.7")
 )
@@ -31,7 +31,6 @@ lazy val tests = (project in file("tests")).
     publishArtifact in Compile := false,
     publishArtifact in Test := false,
     libraryDependencies ++= Seq(
-      "com.pagerduty" %% "pd-stats" % "1.0.0",
       "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
       "org.scalactic" %% "scalactic" % "2.2.6" % "it,test",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "it,test",
@@ -59,6 +58,7 @@ lazy val main = (project in file("main")).
   settings(
     name := "pd-kafka-consumer",
     libraryDependencies ++= Seq(
+      "com.pagerduty" %% "pd-stats" % "1.0.0",
       "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
       "org.slf4j" % "slf4j-api" % "1.7.12")
   )
