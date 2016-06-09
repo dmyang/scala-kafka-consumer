@@ -1,7 +1,7 @@
 package pd.kafkaconsumer.testsupport
 
 import java.util.Properties
-import org.apache.kafka.clients.producer.{ RecordMetadata, KafkaProducer, ProducerRecord }
+import org.apache.kafka.clients.producer.{ KafkaProducer, ProducerRecord }
 import org.slf4j.LoggerFactory
 
 class TestProducer(val topic: String) {
