@@ -1,6 +1,7 @@
-package pd.kafkaconsumer
+package pd.kafkaconsumer.testsupport
 
 import org.apache.kafka.clients.consumer.ConsumerRecords
+import pd.kafkaconsumer.SimpleKafkaConsumer
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 

@@ -6,12 +6,12 @@ lazy val publishSettings = Seq(
       url("https://pagerduty.artifactoryonline.com/pagerduty/all/")
     )(Resolver.ivyStylePatterns),
     Resolver.defaultLocal),
-    publishTo := Some(
+  publishTo := Some(
     Resolver.url(
       "artifactory-pagerduty-releases",
       url("https://pagerduty.artifactoryonline.com/pagerduty/pd-releases/")
     )(Resolver.ivyStylePatterns)),
-    publishMavenStyle := false
+  publishMavenStyle := false
 )
 
 lazy val sharedSettings = Seq(
