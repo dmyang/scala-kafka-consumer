@@ -16,7 +16,7 @@ lazy val publishSettings = Seq(
 
 lazy val sharedSettings = Seq(
   organization := "com.pagerduty",
-  version := "0.2.6",
+  version := "0.2.7",
   scalaVersion := "2.10.6",
   crossScalaVersions := Seq("2.10.6", "2.11.7")
 )
