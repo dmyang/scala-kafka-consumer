@@ -16,7 +16,7 @@ consumer up and running:
 - A bootstrap server to start talking to the Kafka cluster (passed through properties)
 
 By convention, the bootstrap server needs to be fetched using
-[`KafkaClusterLookup`](https://docs.pd-internal.com/scala/pd-kafka-consumer/pd/kafkaconsumer/KafkaClusterLookup.html)`.findBootstrapServer` - note that you're not allowed to cache
+[`KafkaClusterFinder`](https://docs.pd-internal.com/scala/service-finder/#com.pagerduty.servicefinder.KafkaClusterFinder)`.findBootstrapServer` - note that you're not allowed to cache
 the value of the lookup, you want it fresh every time so you get up-to-date
 information from the service discovery system.
 
