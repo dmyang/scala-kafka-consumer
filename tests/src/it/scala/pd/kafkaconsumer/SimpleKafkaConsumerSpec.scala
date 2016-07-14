@@ -1,13 +1,16 @@
 package pd.kafkaconsumer
 
 import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.scalatest.concurrent.Eventually
 import org.scalatest.{FreeSpec, Matchers}
 import pd.kafkaconsumer.testsupport.{TestProducer, ShutdownTestConsumer, TestConsumer, KafkaConsumerSpec}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class SimpleKafkaConsumerSpec extends FreeSpec with Matchers with KafkaConsumerSpec {
+class SimpleKafkaConsumerSpec
+  extends FreeSpec with Matchers with KafkaConsumerSpec with Eventually
+{
   protected val topic = "drc_it_topic"
 
   object testProducer extends TestProducer(topic) {
@@ -107,6 +110,19 @@ class SimpleKafkaConsumerSpec extends FreeSpec with Matchers with KafkaConsumerS
       restartOnMessageConsumer.shutdown()
       val shutdownTime = restartOnMessageConsumer.awaitTerminationAndTrackDelay()
       shutdownTime should be < maxAcceptableShutdownDuration.toMillis
+    }
+
+    "have partition count after first connection" in {
+      val consumer = new TestConsumer(topic)
+      consumer.getPartitionCount() shouldBe None
+
+      consumer.start()
+      eventually {
+        consumer.getPartitionCount() shouldBe Some(1)
+      }
+
+      Await.result(consumer.shutdown(), 10.seconds)
+      consumer.getPartitionCount() shouldBe Some(1)
     }
   }
 

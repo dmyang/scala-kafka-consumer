@@ -68,6 +68,7 @@ abstract class SimpleKafkaConsumer[K, V](
   private val shutdownPromise = promise[Unit]
   @volatile private var shutdownRequested = false
   @volatile private var currentKafkaConsumer: Option[KafkaConsumer[K, V]] = None
+  @volatile private var currentPartitionCount: Option[Int] = None
   @volatile private var isPollingThreadRunning = false
 
   /**
@@ -130,6 +131,17 @@ abstract class SimpleKafkaConsumer[K, V](
   }
 
   /**
+   * Get the number of partitions for the kafka topic.
+   *
+   * This value is fetched once every time the polling thread connects or reconnects the
+   * underlying consumer. If the polling thread has not yet started or the first connect
+   * has not yet succeeded, this will return None.
+   */
+  def getPartitionCount(): Option[Int] = {
+    currentPartitionCount
+  }
+
+  /**
    * This is the only method you need to implement in order to start consuming messages using
    * SimpleKafkaConsumer. The consumer offset is committed after every successful invocation
    * of this method. If this method throws and exception, all of the records in the failed
@@ -186,6 +198,7 @@ abstract class SimpleKafkaConsumer[K, V](
     try {
       setCurrentThreadDescription("initializing")
       currentKafkaConsumer = Some(makeKafkaConsumer())
+      currentPartitionCount = currentKafkaConsumer.map(_.partitionsFor(topic).size)
       initializeKafkaConsumer(currentKafkaConsumer.get)
       pollLoop(currentKafkaConsumer.get)
     } catch {
