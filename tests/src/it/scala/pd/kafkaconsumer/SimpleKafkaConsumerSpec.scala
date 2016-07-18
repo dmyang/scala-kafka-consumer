@@ -114,15 +114,15 @@ class SimpleKafkaConsumerSpec
 
     "have partition count after first connection" in {
       val consumer = new TestConsumer(topic)
-      consumer.getPartitionCount() shouldBe None
+      consumer.partitionCount shouldBe None
 
       consumer.start()
       eventually {
-        consumer.getPartitionCount() shouldBe Some(1)
+        consumer.partitionCount shouldBe Some(1)
       }
 
       Await.result(consumer.shutdown(), 10.seconds)
-      consumer.getPartitionCount() shouldBe Some(1)
+      consumer.partitionCount shouldBe Some(1)
     }
   }
 

@@ -137,7 +137,7 @@ abstract class SimpleKafkaConsumer[K, V](
    * underlying consumer. If the polling thread has not yet started or the first connect
    * has not yet succeeded, this will return None.
    */
-  def getPartitionCount(): Option[Int] = {
+  def partitionCount: Option[Int] = {
     currentPartitionCount
   }
 
