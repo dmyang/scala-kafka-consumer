@@ -133,9 +133,16 @@ abstract class SimpleKafkaConsumer[K, V](
   /**
    * Get the number of partitions for the kafka topic.
    *
-   * This value is fetched once every time the polling thread connects or reconnects the
-   * underlying consumer. If the polling thread has not yet started or the first connect
-   * has not yet succeeded, this will return None.
+   * This intentionally does NOT fetch the value fresh when this method is called but uses a
+   * cached value that is fetched once every time the polling thread connects or reconnects
+   * to the underlying consumer.
+   *
+   * This means that if the polling thread has not yet started or the first connect has not
+   * yet succeeded, this will return None.
+   *
+   * This also means that the number of partitions returned here may be out of date if the
+   * number of partitions on Kafka is changed. Because of this, any service using this
+   * should be restarted to handle a change in the number of partitions.
    */
   def partitionCount: Option[Int] = {
     currentPartitionCount
