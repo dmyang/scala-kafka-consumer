@@ -117,7 +117,7 @@ class SimpleKafkaConsumerSpec
       consumer.partitionCount shouldBe None
 
       consumer.start()
-      eventually {
+      eventually(timeout(5 seconds)) {
         consumer.partitionCount shouldBe Some(1)
       }
 
