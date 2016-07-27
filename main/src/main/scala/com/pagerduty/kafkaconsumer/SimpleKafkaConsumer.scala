@@ -60,7 +60,7 @@ abstract class SimpleKafkaConsumer[K, V](
     val pollTimeout: Duration = SimpleKafkaConsumer.pollTimeout,
     val restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay,
     val commitOffsetTimeout: Duration = SimpleKafkaConsumer.commitOffsetTimeout,
-    val metrics: ConsumerMetrics = PdStatsBasedConsumerMetrics
+    val metrics: ConsumerMetrics = SimpleConsumerMetrics
 ) {
   protected val log = LoggerFactory.getLogger(this.getClass)
 
@@ -324,29 +324,26 @@ object SimpleKafkaConsumer {
     val props = new Properties()
     props.put("group.id", consumerGroup)
     props.put("bootstrap.servers", bootstrapServer)
-    // See the comments in Chef's pd-kafka default attributes. You can tune this
-    // down, but for a single consumer process it's actually not too important - if you
-    // consume a single topic, you'll save this times partitions in memory which is usually
-    // a big "meh".
+    // You can tune this down, but for a single consumer process it's actually not too important
+    // - if you consume a single topic, you'll save this times partitions in memory which is
+    // usually a big "meh".
     props.put("max.partition.fetch.bytes", ((4 * 1024 * 1024) + 50000).toString)
     props
   }
 }
 
 /**
- * A metrics sink for PdKafkaConsumer. Provide an implementation of leave the dummy version
- * to not collect metrics.
+ * A metrics sink for KafkaConsumer. Provide an implementation that calls the given method]
+ * or leave the dummy version to not collect metrics.
  */
 trait ConsumerMetrics {
   def timeCommitSync(f: => Unit): Unit
 }
 
 /**
- * Metrics implementation using PdStats. Not even pretending we can instantiate more than
- * one of this.
+ * Metrics implementation that does no actual timing metric.
  */
-object PdStatsBasedConsumerMetrics extends ConsumerMetrics {
-  import com.pagerduty.stats.PdStats
+object SimpleConsumerMetrics extends ConsumerMetrics {
 
-  override def timeCommitSync(f: => Unit): Unit = PdStats.time("kafka_consumer.commit_sync")(f)
+  override def timeCommitSync(f: => Unit): Unit = { f }
 }

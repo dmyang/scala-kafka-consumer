@@ -57,7 +57,6 @@ lazy val main = (project in file("main")).
   settings(
     name := "pd-kafka-consumer",
     libraryDependencies ++= Seq(
-      "com.pagerduty" %% "pd-stats" % "1.0.1",
       "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
       "org.slf4j" % "slf4j-api" % "1.7.12")
   )
