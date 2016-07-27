@@ -1,4 +1,4 @@
-package pd.kafkaconsumer
+package com.pagerduty.kafkaconsumer
 
 import java.util.Properties
 import java.util.concurrent.{ Executors, ThreadFactory, TimeoutException }

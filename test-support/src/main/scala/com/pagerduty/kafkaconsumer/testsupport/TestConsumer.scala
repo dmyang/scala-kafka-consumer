@@ -1,7 +1,7 @@
-package pd.kafkaconsumer.testsupport
+package com.pagerduty.kafkaconsumer.testsupport
 
 import org.apache.kafka.clients.consumer.ConsumerRecords
-import pd.kafkaconsumer.SimpleKafkaConsumer
+import com.pagerduty.kafkaconsumer.SimpleKafkaConsumer
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 

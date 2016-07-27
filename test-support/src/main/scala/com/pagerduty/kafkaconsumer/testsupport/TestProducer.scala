@@ -1,4 +1,4 @@
-package pd.kafkaconsumer.testsupport
+package com.pagerduty.kafkaconsumer.testsupport
 
 import java.util.Properties
 import org.apache.kafka.clients.producer.{ KafkaProducer, ProducerRecord }

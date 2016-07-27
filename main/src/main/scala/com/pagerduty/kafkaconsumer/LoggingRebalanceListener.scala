@@ -1,4 +1,4 @@
-package pd.kafkaconsumer
+package com.pagerduty.kafkaconsumer
 
 import java.util
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
