@@ -1,29 +1,5 @@
-0.1.7
+0.3.0
 =====
 
-* Actually use the clusterName parameter when looking up a Kafka cluster
+* Open source release
 
-0.1.6
-=====
-
-* Drop slf4j-simple as a regular dependency
-
-0.1.5
-=====
-
-* Increase default maximum message size to 4MB
-
-0.1.2
-======
-
-* Changed default value of restartOnExceptionDelay to 5 seconds from 60
-
-0.1.1
-======
-
-* `shutdown()` method is no longer final
-
-0.1.0
-======
-
-* Initial Release
