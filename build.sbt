@@ -1,17 +1,21 @@
 lazy val publishSettings = Seq(
-  resolvers := Seq(
-    "artifactory-pagerduty-maven" at "https://pagerduty.artifactoryonline.com/pagerduty/all/",
-    Resolver.url( // Add Artifactory again, this time treating it as an ivy repository
-      "artifactory-pagerduty-ivy",
-      url("https://pagerduty.artifactoryonline.com/pagerduty/all/")
-    )(Resolver.ivyStylePatterns),
-    Resolver.defaultLocal),
-  publishTo := Some(
-    Resolver.url(
-      "artifactory-pagerduty-releases",
-      url("https://pagerduty.artifactoryonline.com/pagerduty/pd-releases/")
-    )(Resolver.ivyStylePatterns)),
-  publishMavenStyle := false
+  bintrayOrganization := Some("pagerduty"),
+  bintrayRepository := "oss-maven",
+  licenses += ("BSD New", url("https://opensource.org/licenses/BSD-3-Clause")),
+  publishMavenStyle := true,
+  pomExtra := (
+    <url>https://github.com/PagerDuty/kafka-consumer</url>
+      <scm>
+        <url>git@github.com:PagerDuty/kafka-consumer.git</url>
+        <connection>scm:git:git@github.com:PagerDuty/kafka-consumer.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>lexn82</id>
+          <name>Aleksey Nikiforov</name>
+          <url>https://github.com/lexn82</url>
+        </developer>
+      </developers>)
 )
 
 lazy val sharedSettings = Seq(
@@ -26,7 +30,7 @@ lazy val tests = (project in file("tests")).
   settings(Defaults.itSettings: _*).
   settings(sharedSettings: _*).
   settings(
-    name := "pd-kafka-consumer-tests",
+    name := "kafka-consumer-tests",
     publishArtifact in Compile := false,
     publishArtifact in Test := false,
     libraryDependencies ++= Seq(
@@ -43,7 +47,7 @@ lazy val testSupport = (project in file("test-support")).
   settings(sharedSettings: _*).
   settings(publishSettings: _*).
   settings(
-    name := "pd-kafka-consumer-test-support",
+    name := "kafka-consumer-test-support",
     libraryDependencies ++= Seq(
       "org.scalactic" %% "scalactic" % "2.2.6",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2",
@@ -55,7 +59,7 @@ lazy val main = (project in file("main")).
   settings(sharedSettings: _*).
   settings(publishSettings: _*).
   settings(
-    name := "pd-kafka-consumer",
+    name := "kafka-consumer",
     libraryDependencies ++= Seq(
       "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
       "org.slf4j" % "slf4j-api" % "1.7.12")

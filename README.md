@@ -8,6 +8,20 @@ library to use as a transitive dependency (so don't double-specify it if
 you're depending on this library) and provides a base test class for Kafka-eske
 integration tests.
 
+## Installation
+
+This library is published to PagerDuty Bintray OSS Maven repository:
+
+```scala
+resolvers += "bintray-pagerduty-oss-maven" at "https://dl.bintray.com/pagerduty/oss-maven"
+```
+
+Adding the dependency to your SBT build file:
+
+```scala
+libraryDependencies += "com.pagerduty" %% "kafka-consumer" % "0.3.0"
+```
+
 ## Usage
 
 Create a new `SimpleKafkaConsumer` and get cranking. Usually you need three items to get a default
@@ -20,12 +34,6 @@ consumer up and running:
 For testing, you can re-use/build on the classes in the `pd.kafkaconsumer.testsupport`
 package, which contains a base Spec to inherit from if you need a Kafka integration
 test.
-
-## Building
-
-Very basic sbt setup. For now, all tests are integration tests but run during the
-regular "test" phase, so before doing `sbt test` make sure a Kafka and Zookeeper
-instance are running on the local machine.
 
 ## Release
 
