@@ -11,7 +11,7 @@ import scala.language.postfixOps
 class SimpleKafkaConsumerSpec
   extends FreeSpec with Matchers with KafkaConsumerSpec with Eventually
 {
-  protected val topic = "drc_it_topic"
+  protected val topic = "kafkaconsumer_it_topic"
 
   object testProducer extends TestProducer(topic) {
     def sendTestMessage(id: Long): Unit = {
