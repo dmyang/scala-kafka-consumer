@@ -11,9 +11,9 @@ lazy val publishSettings = Seq(
       </scm>
       <developers>
         <developer>
-          <id>lexn82</id>
-          <name>Aleksey Nikiforov</name>
-          <url>https://github.com/lexn82</url>
+          <id>divtxt</id>
+          <name>Div Shekhar</name>
+          <url>https://github.com/divtxt</url>
         </developer>
       </developers>)
 )

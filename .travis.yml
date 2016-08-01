@@ -22,8 +22,6 @@ cache:
 before_install:
   - curl https://raw.githubusercontent.com/PagerDuty/pd-travis-deps/master/zookeeper | /bin/sh
   - curl https://raw.githubusercontent.com/PagerDuty/pd-travis-deps/master/kafka | /bin/sh
-  - cp .travisci/credentials.sbt ~/.sbt
-  - sed -i "s|%{password}|$ARTIFACTORY_PASS|" ~/.sbt/credentials.sbt
 before_script:
   - ~/travis-deps/start-zookeeper.sh && sleep 3
   - ~/travis-deps/start-kafka.sh && sleep 3
