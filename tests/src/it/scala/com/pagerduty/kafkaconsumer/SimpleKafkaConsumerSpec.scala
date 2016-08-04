@@ -1,9 +1,9 @@
-package pd.kafkaconsumer
+package com.pagerduty.kafkaconsumer
 
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{FreeSpec, Matchers}
-import pd.kafkaconsumer.testsupport.{TestProducer, ShutdownTestConsumer, TestConsumer, KafkaConsumerSpec}
+import com.pagerduty.kafkaconsumer.testsupport.{TestProducer, ShutdownTestConsumer, TestConsumer, KafkaConsumerSpec}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -11,7 +11,7 @@ import scala.language.postfixOps
 class SimpleKafkaConsumerSpec
   extends FreeSpec with Matchers with KafkaConsumerSpec with Eventually
 {
-  protected val topic = "drc_it_topic"
+  protected val topic = "kafkaconsumer_it_topic"
 
   object testProducer extends TestProducer(topic) {
     def sendTestMessage(id: Long): Unit = {

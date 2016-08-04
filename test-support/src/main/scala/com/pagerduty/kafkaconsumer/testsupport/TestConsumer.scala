@@ -1,13 +1,13 @@
-package pd.kafkaconsumer.testsupport
+package com.pagerduty.kafkaconsumer.testsupport
 
 import org.apache.kafka.clients.consumer.ConsumerRecords
-import pd.kafkaconsumer.SimpleKafkaConsumer
+import com.pagerduty.kafkaconsumer.SimpleKafkaConsumer
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
 object TestConsumerConfig {
   // Consumer group name
-  val consumerGroup = "drc-it-consumer"
+  val consumerGroup = "kafkaconsumer-it-consumer"
 
   // Simple helper to create properties from the above. Note that
   // we don't cache the lookup, as it may always change.
