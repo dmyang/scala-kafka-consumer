@@ -33,6 +33,8 @@ lazy val tests = (project in file("tests")).
     name := "kafka-consumer-tests",
     publishArtifact in Compile := false,
     publishArtifact in Test := false,
+    publishLocal := {},
+    publish := {},
     libraryDependencies ++= Seq(
       "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
       "org.scalactic" %% "scalactic" % "2.2.6" % "it,test",
@@ -63,4 +65,14 @@ lazy val main = (project in file("main")).
     libraryDependencies ++= Seq(
       "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
       "org.slf4j" % "slf4j-api" % "1.7.12")
+  )
+
+lazy val root = Project(
+  id = "root",
+  base = file("."),
+  aggregate = Seq(tests, testSupport, main),
+  settings = Project.defaultSettings ++ Seq(
+    publishLocal := {},
+    publish := {},
+    publishArtifact := false)
   )
