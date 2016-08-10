@@ -1,4 +1,6 @@
-# PagerDuty Kafka Consumer [![Build Status](https://travis-ci.com/PagerDuty/pd-kafka-consumer.svg?token=7Mi8LhmhpJYhzs4euq1w&branch=master)](https://travis-ci.com/PagerDuty/pd-kafka-consumer/builds)
+# PagerDuty Kafka Consumer
+
+[![Build Status](https://travis-ci.org/PagerDuty/scala-kafka-consumer.svg?branch=master)](https://travis-ci.org/PagerDuty/scala-kafka-consumer)
 
 This is an open source project!
 
@@ -31,7 +33,7 @@ consumer up and running:
 - The consumer group your consumer belongs to (passed through properties)
 - A bootstrap server to start talking to the Kafka cluster (passed through properties)
 
-For testing, you can re-use/build on the classes in the `pd.kafkaconsumer.testsupport`
+For testing, you can re-use/build on the classes in the `com.pagerduty.kafkaconsumer.testsupport`
 package, which contains a base Spec to inherit from if you need a Kafka integration
 test.
 
