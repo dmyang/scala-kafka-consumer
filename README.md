@@ -21,7 +21,7 @@ resolvers += "bintray-pagerduty-oss-maven" at "https://dl.bintray.com/pagerduty/
 Adding the dependency to your SBT build file:
 
 ```scala
-libraryDependencies += "com.pagerduty" %% "kafka-consumer" % "0.3.0"
+libraryDependencies += "com.pagerduty" %% "kafka-consumer" % "0.3.2"
 ```
 
 ## Usage
