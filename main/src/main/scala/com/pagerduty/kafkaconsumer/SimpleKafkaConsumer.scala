@@ -19,6 +19,8 @@ import scala.util.control.NonFatal
  * All you have to do is extend this class and provide your own implementation of
  * `processRecords(...)` method:
  * {{{
+ * import scala.collection.JavaConversions._
+ * 
  * class MyConsumer extends SimpleKafkaConsumer(
  *   myTopic, properties)
  * {
