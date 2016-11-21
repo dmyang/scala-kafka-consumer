@@ -11,10 +11,11 @@ object TestConsumerConfig {
 
   // Simple helper to create properties from the above. Note that
   // we don't cache the lookup, as it may always change.
-  def makeProps = {
+  def makeProps(maxPollRecords: Option[Int] = None) = {
     val props = SimpleKafkaConsumer.makeProps(
       "localhost:9092",
-      TestConsumerConfig.consumerGroup
+      TestConsumerConfig.consumerGroup,
+      maxPollRecords
     )
     // Make stuff fail a bit quicker than normal
     props.put("session.timeout.ms", "6000")
@@ -27,11 +28,12 @@ object TestConsumerConfig {
 class TestConsumer(
   topic: String,
   pollTimeout: Duration = 100 milliseconds,
-  restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay
+  restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay,
+  maxPollRecords: Option[Int] = None
 )
     extends SimpleKafkaConsumer(
       topic,
-      TestConsumerConfig.makeProps,
+      TestConsumerConfig.makeProps(maxPollRecords),
       pollTimeout = pollTimeout,
       restartOnExceptionDelay = restartOnExceptionDelay
     )
@@ -47,10 +49,22 @@ class TestConsumer(
     }
   }
 
+  private var keyGroups = List.empty[List[Long]]
+  def processedKeyGroups: Seq[Seq[Long]] = this.synchronized { keyGroups }
+
   override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {
+    var keyGroup = List.empty[Long]
     for (record <- records) {
       log.debug(s"process ${record.topic}/${record.partition}/${record.offset}: ${record.key}=${record.value}")
       processMessage(record.key, record.value)
+      try {
+        keyGroup = keyGroup :+ record.key.toLong
+      } catch {
+        case _: NumberFormatException => // ignore
+      }
+    }
+    if (keyGroup.length > 0) {
+      keyGroups = keyGroups :+ keyGroup
     }
 
     autoShutdownWhenInactive(records.count)
@@ -89,7 +103,7 @@ class ShutdownTestConsumer(
 )
     extends SimpleKafkaConsumer(
       topic,
-      TestConsumerConfig.makeProps,
+      TestConsumerConfig.makeProps(),
       pollTimeout = pollTimeout,
       restartOnExceptionDelay = restartOnExceptionDelay
     ) {

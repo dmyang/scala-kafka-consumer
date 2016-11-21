@@ -124,6 +124,19 @@ class SimpleKafkaConsumerSpec
       Await.result(consumer.shutdown(), 10.seconds)
       consumer.partitionCount shouldBe Some(1)
     }
+
+    "support max.poll.records" in {
+      val consumer = new TestConsumer(topic, maxPollRecords = Option(4))
+      consumer.start()
+
+      val ids: Seq[Long] = makeMessageIdSeq(10)
+      testProducer.sendTestMessages(ids)
+
+      consumer.awaitTermination()
+
+      val expectedIdGroups: Seq[Seq[Long]] = ids.grouped(4).toSeq
+      consumer.processedKeyGroups shouldBe expectedIdGroups
+    }
   }
 
   def makeMessageIdSeq(count: Int): Seq[Long] = {

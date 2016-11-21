@@ -56,7 +56,7 @@ lazy val tests = (project in file("tests")).
     publishLocal := {},
     publish := {},
     libraryDependencies ++= Seq(
-      "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
+      "org.apache.kafka" % "kafka-clients" % "0.10.1.0",
       "org.scalactic" %% "scalactic" % "2.2.6" % "it,test",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "it,test",
       "org.scalatest" %% "scalatest" % "2.2.6" % "it,test",
@@ -83,7 +83,7 @@ lazy val main = (project in file("main")).
   settings(
     name := "kafka-consumer",
     libraryDependencies ++= Seq(
-      "org.apache.kafka" % "kafka-clients" % "0.9.0.1",
+      "org.apache.kafka" % "kafka-clients" % "0.10.1.0",
       "org.slf4j" % "slf4j-api" % "1.7.12")
   )
 

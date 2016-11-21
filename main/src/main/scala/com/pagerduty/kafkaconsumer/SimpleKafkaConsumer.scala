@@ -20,7 +20,7 @@ import scala.util.control.NonFatal
  * `processRecords(...)` method:
  * {{{
  * import scala.collection.JavaConversions._
- * 
+ *
  * class MyConsumer extends SimpleKafkaConsumer(
  *   myTopic, properties)
  * {
@@ -322,7 +322,11 @@ object SimpleKafkaConsumer {
   val commitOffsetTimeout: Duration = 5 seconds
 
   /** Helper to create basic properties */
-  def makeProps(bootstrapServer: String, consumerGroup: String): Properties = {
+  def makeProps(
+    bootstrapServer: String,
+    consumerGroup: String,
+    maxPollRecords: Option[Int] = None
+  ): Properties = {
     val props = new Properties()
     props.put("group.id", consumerGroup)
     props.put("bootstrap.servers", bootstrapServer)
@@ -330,6 +334,9 @@ object SimpleKafkaConsumer {
     // - if you consume a single topic, you'll save this times partitions in memory which is
     // usually a big "meh".
     props.put("max.partition.fetch.bytes", ((4 * 1024 * 1024) + 50000).toString)
+
+    maxPollRecords.foreach { (v: Int) => props.put("max.poll.records", v.toString) }
+
     props
   }
 }
