@@ -40,7 +40,7 @@ lazy val publishSettings = Seq(
 
 lazy val sharedSettings = Seq(
   organization := "com.pagerduty",
-  scalaVersion := "2.10.6",
+  scalaVersion := "2.11.11",
   crossScalaVersions := Seq("2.10.6", "2.11.7")
 )
 
@@ -87,10 +87,25 @@ lazy val main = (project in file("main")).
       "org.slf4j" % "slf4j-api" % "1.7.12")
   )
 
+lazy val partitioned = (project in file("partitioned")).
+  settings(publishSettings: _*).
+  settings(
+    name := "kafka-consumer-partitioned",
+    organization := "com.pagerduty",
+    scalaVersion := "2.11.11",
+    crossScalaVersions := Seq("2.11.11", "2.12.2"),
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-stream" % "2.5.3",
+      "com.typesafe.akka" %% "akka-stream-kafka" % "0.16",
+      "org.slf4j" % "slf4j-api" % "1.7+",
+      "com.typesafe.akka" %% "akka-slf4j" % "2.4.18"
+    )
+  )
+
 lazy val root = Project(
   id = "root",
   base = file("."),
-  aggregate = Seq(tests, testSupport, main),
+  aggregate = Seq(tests, testSupport, main, partitioned),
   settings = Project.defaultSettings ++ Seq(
     publishLocal := {},
     publish := {},
