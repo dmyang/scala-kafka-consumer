@@ -12,21 +12,36 @@ integration tests.
 
 ## Installation
 
-This library is published to PagerDuty Bintray OSS Maven repository:
+This library is published as a number of different artifacts to the PagerDuty Bintray OSS Maven repository:
 
 ```scala
 resolvers += "bintray-pagerduty-oss-maven" at "https://dl.bintray.com/pagerduty/oss-maven"
 ```
 
-Adding the dependency to your SBT build file:
+Currently, there are two different consumers available:
 
-```scala
-libraryDependencies += "com.pagerduty" %% "kafka-consumer" % "0.3.2"
-```
+ - [`SimpleKafkaConsumer`](main/src/main/scala/com/pagerduty/kafkaconsumer/SimpleKafkaConsumer.scala) - As the name suggests, 
+   this consumer is very simple to use and has few dependencies. It is available as follows:
+   
+   ```scala
+   libraryDependencies += "com.pagerduty" %% "kafka-consumer" % "<version>"
+   ```   
+   
+ - [`PartitionedKafkaConsumer`](partitioned/src/main/scala/com/pagerduty/kafkaconsumer/PartitionedKafkaConsumer.scala) - 
+   This consumer improves on `SimpleKafkaConsumer` at the expense of an additional dependency
+   (Akka Streams) and no support for 2.10. This consumer processes and commits Kafka messages for each assigned partition
+   independently and in parallel. Therefore, this consumer is both faster and more tolerant of transient processing failures.
+   It is available as follows:
+   
+   ```scala
+   libraryDependencies += "com.pagerduty" %% "kafka-consumer-partitioned" % "<version>"
+   ```   
 
 ## Usage
 
-Create a new `SimpleKafkaConsumer` and get cranking. Usually you need three items to get a default
+This library is published as a number of separate artifacts
+
+Create a new `SimpleKafkaConsumer` or `PartitionedKafkaConsumer` and get cranking. Usually you need three items to get a default
 consumer up and running:
 
 - The topic the consumer works on (constructor argument)
