@@ -25,7 +25,8 @@ import scala.util.{Failure, Success}
   * Unlike SimpleKafkaConsumer, this consumer parallelizes the processing of messages from different partitions. This means
   * there will also be greater throughput from this consumer since it can properly use multiple CPU cores.
   *
-  *
+  * Users of this class should call `start()` to begin consuming records from Kafka, and `shutdown()` to stop consuming.
+  * `start()` may be called again after `shutdown()`.
   *
   * @param topic The topic from which to consume
   * @param keyDeserializer The Kafka record key deserializer
@@ -63,6 +64,11 @@ abstract class PartitionedKafkaConsumer[K, V](
     Supervision.Stop
   }
 
+  /**
+    * This method causes the consumer to start consuming records from Kafka.
+    *
+    * @throws IllegalStateException if the consumer has already been started
+    */
   def start(): Unit = Lock.synchronized {
     if (optSystem.isDefined || optConsumer.isDefined)
       throw new IllegalStateException("PartitionedKafkaConsumer has already been started!")
@@ -75,6 +81,12 @@ abstract class PartitionedKafkaConsumer[K, V](
     log.info("PartitionedKafkaConsumer start-up is complete")
   }
 
+  /**
+    * This method stops the consumer from consuming records from Kafka. It is a graceful shutdown, so records being
+    * processed will have `consumerShutdownTimeout` to complete before they are forcibly terminated.
+    *
+    * If the consumer is already shutdown, calling this method has no effect.
+    */
   def shutdown(): Unit = Lock.synchronized {
     log.info("Shutting down PartitionedKafkaConsumer...")
     shutdownConsumer()
