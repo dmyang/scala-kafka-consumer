@@ -7,11 +7,11 @@ import org.slf4j.Logger
 import scala.collection.JavaConversions._
 
 /**
- * LoggingRebalanceListener will log partition re-balancing events for selected topic.
- *
- * @param topic
- * @param log
- */
+  * LoggingRebalanceListener will log partition re-balancing events for selected topic.
+  *
+  * @param topic
+  * @param log
+  */
 class LoggingRebalanceListener(topic: String, log: Logger) extends ConsumerRebalanceListener {
   private var currentAssignment = Set.empty[TopicPartition]
 
@@ -37,9 +37,7 @@ class LoggingRebalanceListener(topic: String, log: Logger) extends ConsumerRebal
 
   protected def logNewAssignment(partitions: Set[TopicPartition]): Unit = {}
 
-  protected def getTopicPartitioningInfo(
-    partitions: Set[TopicPartition], maxLength: Option[Int] = None
-  ): String = {
+  protected def getTopicPartitioningInfo(partitions: Set[TopicPartition], maxLength: Option[Int] = None): String = {
     def shorten(string: String, length: Int) = {
       if (string.length > length) string.take(length - 3) + "..." else string
     }

@@ -26,11 +26,10 @@ object TestConsumerConfig {
 }
 
 class TestConsumer(
-  topic: String,
-  pollTimeout: Duration = 100 milliseconds,
-  restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay,
-  maxPollRecords: Option[Int] = None
-)
+    topic: String,
+    pollTimeout: Duration = 100 milliseconds,
+    restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay,
+    maxPollRecords: Option[Int] = None)
     extends SimpleKafkaConsumer(
       topic,
       TestConsumerConfig.makeProps(maxPollRecords),
@@ -97,10 +96,9 @@ trait ConsumerTestHelper { self: SimpleKafkaConsumer[_, _] =>
 }
 
 class ShutdownTestConsumer(
-  topic: String,
-  pollTimeout: Duration = 100 milliseconds,
-  restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay
-)
+    topic: String,
+    pollTimeout: Duration = 100 milliseconds,
+    restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay)
     extends SimpleKafkaConsumer(
       topic,
       TestConsumerConfig.makeProps(),

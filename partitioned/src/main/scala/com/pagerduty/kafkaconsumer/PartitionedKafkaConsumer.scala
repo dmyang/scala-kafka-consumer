@@ -1,43 +1,45 @@
 package com.pagerduty.kafkaconsumer
 
 import akka.Done
-import akka.actor.{ ActorSystem, Cancellable }
+import akka.actor.{ActorSystem, Cancellable}
 import akka.kafka.ConsumerMessage.CommittableOffsetBatch
 import akka.kafka.scaladsl.Consumer
-import akka.kafka.{ AutoSubscription, ConsumerMessage, ConsumerSettings, Subscriptions }
-import akka.stream.{ ActorMaterializer, ActorMaterializerSettings, Supervision }
-import akka.stream.scaladsl.{ Keep, Sink, Source }
-import com.typesafe.config.{ Config, ConfigFactory }
+import akka.kafka.{AutoSubscription, ConsumerMessage, ConsumerSettings, Subscriptions}
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
+import akka.stream.scaladsl.{Keep, Sink, Source}
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.Deserializer
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.{ Await, ExecutionContext, Future }
-import scala.concurrent.duration.{ Duration, FiniteDuration }
-import scala.util.{ Failure, Success }
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.util.{Failure, Success}
 
 /**
- * The PartitionedKafkaConsumer is an alternative to SimpleKafkaConsumer.
- *
- * The advantage it has is that partitions are consumed, processed, and committed independently from each other. So, a
- * partition containing messages that take a long time to process will not slow down the processing of other partitions.
- *
- * Unlike SimpleKafkaConsumer, this consumer parallelizes the processing of messages from different partitions. This means
- * there will also be greater throughput from this consumer since it can properly use multiple CPU cores.
- *
- * @param topic The topic from which to consume
- * @param keyDeserializer The Kafka record key deserializer
- * @param valueDeserializer The Kafka record value deserializer
- * @param config Optional Typesafe config containing the `akka.kafka.consumer` config structure. This is used to tune the
- *               underlying akka-stream-kafka library, and the Kafka client library.
- *
- *               See http://doc.akka.io/docs/akka-stream-kafka/current/consumer.html for details
- * @param restartOnExceptionDelay How long to wait before restarting the consumer after an unhandled exception
- * @param commitOffsetMaxBatchSize The maximum size of a batch of records before they are committed back to Kafka
- * @param consumerShutdownTimeout Timeout on shutdown before the consumer is forcibly terminated
- * @tparam K The type of the Kafka record key
- * @tparam V The type of the Kafka record value
- */
+  * The PartitionedKafkaConsumer is an alternative to SimpleKafkaConsumer.
+  *
+  * The advantage it has is that partitions are consumed, processed, and committed independently from each other. So, a
+  * partition containing messages that take a long time to process will not slow down the processing of other partitions.
+  *
+  * Unlike SimpleKafkaConsumer, this consumer parallelizes the processing of messages from different partitions. This means
+  * there will also be greater throughput from this consumer since it can properly use multiple CPU cores.
+  *
+  *
+  *
+  * @param topic The topic from which to consume
+  * @param keyDeserializer The Kafka record key deserializer
+  * @param valueDeserializer The Kafka record value deserializer
+  * @param config Optional Typesafe config containing the `akka.kafka.consumer` config structure. This is used to tune the
+  *               underlying akka-stream-kafka library, and the Kafka client library.
+  *
+  *               See http://doc.akka.io/docs/akka-stream-kafka/current/consumer.html for details
+  * @param restartOnExceptionDelay How long to wait before restarting the consumer after an unhandled exception
+  * @param commitOffsetMaxBatchSize The maximum size of a batch of records before they are committed back to Kafka
+  * @param consumerShutdownTimeout Timeout on shutdown before the consumer is forcibly terminated
+  * @tparam K The type of the Kafka record key
+  * @tparam V The type of the Kafka record value
+  */
 abstract class PartitionedKafkaConsumer[K, V](
     topic: String,
     keyDeserializer: Deserializer[K],
@@ -45,8 +47,7 @@ abstract class PartitionedKafkaConsumer[K, V](
     config: Config = ConfigFactory.load(),
     restartOnExceptionDelay: FiniteDuration = PartitionedKafkaConsumer.RestartOnExceptionDelay,
     commitOffsetMaxBatchSize: Long = PartitionedKafkaConsumer.CommitOffsetMaxBatchSize,
-    consumerShutdownTimeout: Duration = PartitionedKafkaConsumer.ConsumerShutdownTimeout
-) {
+    consumerShutdownTimeout: Duration = PartitionedKafkaConsumer.ConsumerShutdownTimeout) {
 
   protected val log = LoggerFactory.getLogger(getClass)
 
@@ -82,40 +83,40 @@ abstract class PartitionedKafkaConsumer[K, V](
   }
 
   /**
-   * This method is the only method that must be overridden to use this class.
-   *
-   * Logic to process an individual record from Kafka should be placed in this method. Once the method completes successfully,
-   * its offset will be committed asynchronously back to Kafka, subject to batching rules. Because of the batched and async commit,
-   * and because of the at-least-once characteristics of Kafka, this method should handle being called with the same record
-   * multiple times.
-   *
-   * If this method throws an exception, its offset will not be committed back to Kafka. Rather, the underlying Kafka
-   * consumer will be restarted after `restartOnExceptionDelay`. The same record will then be passed to this method.
-   * This allows for transient exceptions (e.g. network timeouts) to be handled gracefully. Non-transient exceptions,
-   * however, will cause this consumer to go into a restart loop, meaning that no records (even from other partitions)
-   * will be processed.
-   *
-   * This method should return a Future, completed when the record is processed. If your processing logic is synchronous,
-   * simply wrap it in a Future (probably with `blocking`) and let it be executed by a thread pool or other ExecutionContext.
-   * The point of this interface is to be flexible with respect to concurrency.
-   *
-   * @param record The Kafka record to process
-   * @param partition The partition from which the record was consumed
-   *
-   * @return A Future that, when complete, indicates that the record has been successfully processed
-   */
+    * This method is the only method that must be overridden to use this class.
+    *
+    * Logic to process an individual record from Kafka should be placed in this method. Once the method completes successfully,
+    * its offset will be committed asynchronously back to Kafka, subject to batching rules. Because of the batched and async commit,
+    * and because of the at-least-once characteristics of Kafka, this method should handle being called with the same record
+    * multiple times.
+    *
+    * If this method throws an exception, its offset will not be committed back to Kafka. Rather, the underlying Kafka
+    * consumer will be restarted after `restartOnExceptionDelay`. The same record will then be passed to this method.
+    * This allows for transient exceptions (e.g. network timeouts) to be handled gracefully. Non-transient exceptions,
+    * however, will cause this consumer to go into a restart loop, meaning that no records (even from other partitions)
+    * will be processed.
+    *
+    * This method should return a Future, completed when the record is processed. If your processing logic is synchronous,
+    * simply wrap it in a Future (probably with `blocking`) and let it be executed by a thread pool or other ExecutionContext.
+    * The point of this interface is to be flexible with respect to concurrency.
+    *
+    * @param record The Kafka record to process
+    * @param partition The partition from which the record was consumed
+    *
+    * @return A Future that, when complete, indicates that the record has been successfully processed
+    */
   def processRecord(record: ConsumerRecord[K, V], partition: Int): Future[Unit]
 
   /**
-   * This method can be overridden to hook in custom behaviour after a Kafka record has been successfully
-   * processed and committed.
-   *
-   * @param record The record for which an offset was committed
-   * @param partition The partition for which the offset was committed
-   * @param offset The offset which was committed
-   *
-   * @return A Future that, when complete, indicates that the custom logic has been completed
-   */
+    * This method can be overridden to hook in custom behaviour after a Kafka record has been successfully
+    * processed and committed.
+    *
+    * @param record The record for which an offset was committed
+    * @param partition The partition for which the offset was committed
+    * @param offset The offset which was committed
+    *
+    * @return A Future that, when complete, indicates that the custom logic has been completed
+    */
   def afterCommit(record: ConsumerRecord[K, V], partition: Int, offset: Long): Future[Unit] = {
     Future.successful(Unit)
   }
@@ -150,11 +151,11 @@ abstract class PartitionedKafkaConsumer[K, V](
   }
 
   private def buildConsumerSource(
-    consumerSettings: ConsumerSettings[K, V],
-    subscriptions: AutoSubscription
-  )(implicit
-    executionContext: ExecutionContext,
-    materializer: ActorMaterializer): Source[Future[Done], Consumer.Control] = {
+      consumerSettings: ConsumerSettings[K, V],
+      subscriptions: AutoSubscription
+    )(implicit executionContext: ExecutionContext,
+      materializer: ActorMaterializer
+    ): Source[Future[Done], Consumer.Control] = {
     Consumer
       .committablePartitionedSource(consumerSettings, subscriptions)
       .map {
@@ -170,12 +171,12 @@ abstract class PartitionedKafkaConsumer[K, V](
                 (
                   Seq(first),
                   CommittableOffsetBatch.empty.updated(first.committableOffset)
-                )
+              )
             ) {
-                case ((batchedRecords, batchedOffsets), elem) =>
-                  val r = batchedRecords :+ elem
-                  (r, batchedOffsets.updated(elem.committableOffset))
-              }
+              case ((batchedRecords, batchedOffsets), elem) =>
+                val r = batchedRecords :+ elem
+                (r, batchedOffsets.updated(elem.committableOffset))
+            }
             .mapAsync(1) {
               case (batchedRecords, committableBatch) =>
                 committableBatch.commitScaladsl().map(_ => (batchedRecords, committableBatch))

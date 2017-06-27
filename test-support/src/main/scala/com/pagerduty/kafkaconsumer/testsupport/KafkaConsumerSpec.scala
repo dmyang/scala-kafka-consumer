@@ -4,9 +4,9 @@ import org.scalatest._
 import org.slf4j.LoggerFactory
 
 /**
- * Extend this trait to create a Kafka integration test. See the integration test in
- * Datahose Reporting Consumer for an example.
- */
+  * Extend this trait to create a Kafka integration test. See the integration test in
+  * Datahose Reporting Consumer for an example.
+  */
 trait KafkaConsumerSpec extends BeforeAndAfterEachTestData with BeforeAndAfterAll { this: Suite =>
   protected val log = LoggerFactory.getLogger(this.getClass)
 
