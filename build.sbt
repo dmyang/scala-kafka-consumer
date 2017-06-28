@@ -74,11 +74,11 @@ lazy val testSupport = (project in file("test-support"))
   .settings(publishSettings: _*)
   .settings(
     name := "kafka-consumer-test-support",
-    crossScalaVersions := Seq("2.10.6", "2.11.11"),
+    crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2"),
     libraryDependencies ++= Seq(
-      "org.scalactic" %% "scalactic" % "2.2.6",
-      "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2",
-      "org.scalatest" %% "scalatest" % "2.2.6",
+      "org.scalactic" %% "scalactic" % "3.0.1",
+      "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0",
+      "org.scalatest" %% "scalatest" % "3.0.1",
       "org.slf4j" % "slf4j-simple" % "1.7.12"
     )
   )
@@ -88,7 +88,7 @@ lazy val main = (project in file("main"))
   .settings(publishSettings: _*)
   .settings(
     name := "kafka-consumer",
-    crossScalaVersions := Seq("2.10.6", "2.11.11"),
+    crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2"),
     libraryDependencies ++= Seq(
       "org.apache.kafka" % "kafka-clients" % KafkaClientVersion,
       "org.slf4j" % "slf4j-api" % "1.7.12"
