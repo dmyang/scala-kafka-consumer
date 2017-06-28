@@ -39,14 +39,13 @@ lazy val publishSettings = Seq(
 
 lazy val sharedSettings = Seq(
   organization := "com.pagerduty",
-  scalaVersion := "2.11.11",
-  crossScalaVersions := Seq("2.10.6", "2.11.7")
+  scalaVersion := "2.11.11"
 )
 
 lazy val tests = (project in file("tests"))
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(scalafmtSettings))
-  .dependsOn(main, testSupport)
+  .dependsOn(main, testSupport, partitioned)
   .settings(Defaults.itSettings: _*)
   .settings(sharedSettings: _*)
   .settings(
@@ -71,6 +70,7 @@ lazy val testSupport = (project in file("test-support"))
   .settings(publishSettings: _*)
   .settings(
     name := "kafka-consumer-test-support",
+    crossScalaVersions := Seq("2.10.6", "2.11.11"),
     libraryDependencies ++= Seq(
       "org.scalactic" %% "scalactic" % "2.2.6",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2",
@@ -84,6 +84,7 @@ lazy val main = (project in file("main"))
   .settings(publishSettings: _*)
   .settings(
     name := "kafka-consumer",
+    crossScalaVersions := Seq("2.10.6", "2.11.11"),
     libraryDependencies ++= Seq(
       "org.apache.kafka" % "kafka-clients" % "0.10.1.1",
       "org.slf4j" % "slf4j-api" % "1.7.12"
@@ -91,11 +92,10 @@ lazy val main = (project in file("main"))
   )
 
 lazy val partitioned = (project in file("partitioned"))
+  .settings(sharedSettings: _*)
   .settings(publishSettings: _*)
   .settings(
     name := "kafka-consumer-partitioned",
-    organization := "com.pagerduty",
-    scalaVersion := "2.11.11",
     crossScalaVersions := Seq("2.11.11", "2.12.2"),
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-stream" % "2.5.3",

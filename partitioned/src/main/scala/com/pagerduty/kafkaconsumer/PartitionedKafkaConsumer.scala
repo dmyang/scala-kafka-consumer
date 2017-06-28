@@ -9,7 +9,7 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.apache.kafka.common.serialization.Deserializer
+import org.apache.kafka.common.serialization.{Deserializer, StringDeserializer}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -29,8 +29,8 @@ import scala.util.{Failure, Success}
   * `start()` may be called again after `shutdown()`.
   *
   * @param topic The topic from which to consume
-  * @param keyDeserializer The Kafka record key deserializer
-  * @param valueDeserializer The Kafka record value deserializer
+  * @param keyDeserializer The optional Kafka record key deserializer
+  * @param valueDeserializer The optional Kafka record value deserializer
   * @param config Optional Typesafe config containing the `akka.kafka.consumer` config structure. This is used to tune the
   *               underlying akka-stream-kafka library, and the Kafka client library.
   *
@@ -43,8 +43,8 @@ import scala.util.{Failure, Success}
   */
 abstract class PartitionedKafkaConsumer[K, V](
     topic: String,
-    keyDeserializer: Deserializer[K],
-    valueDeserializer: Deserializer[V],
+    keyDeserializer: Deserializer[K] = new StringDeserializer,
+    valueDeserializer: Deserializer[V] = new StringDeserializer,
     config: Config = ConfigFactory.load(),
     restartOnExceptionDelay: FiniteDuration = PartitionedKafkaConsumer.RestartOnExceptionDelay,
     commitOffsetMaxBatchSize: Long = PartitionedKafkaConsumer.CommitOffsetMaxBatchSize,
@@ -117,7 +117,7 @@ abstract class PartitionedKafkaConsumer[K, V](
     *
     * @return A Future that, when complete, indicates that the record has been successfully processed
     */
-  def processRecord(record: ConsumerRecord[K, V], partition: Int): Future[Unit]
+  protected def processRecord(record: ConsumerRecord[K, V], partition: Int): Future[Unit]
 
   /**
     * This method can be overridden to hook in custom behaviour after a Kafka record has been successfully
@@ -229,6 +229,7 @@ abstract class PartitionedKafkaConsumer[K, V](
       case Some(futureConsumerStartup) =>
         log.info("Cancelling scheduled Kafka consumer startup")
         futureConsumerStartup.cancel()
+        optFutureConsumerStartup = None
       case None => // nothing to do
     }
 
