@@ -37,9 +37,13 @@ lazy val publishSettings = Seq(
       </developers>)
 )
 
+lazy val KafkaClientVersion = "0.10.1.1"
+
 lazy val sharedSettings = Seq(
   organization := "com.pagerduty",
-  scalaVersion := "2.11.11"
+  scalaVersion := "2.11.11",
+  // akka-stream-kafka wants a newer version, but works fine with the older client
+  dependencyOverrides += "org.apache.kafka" % "kafka-clients" % KafkaClientVersion
 )
 
 lazy val tests = (project in file("tests"))
@@ -55,7 +59,7 @@ lazy val tests = (project in file("tests"))
     publishLocal := {},
     publish := {},
     libraryDependencies ++= Seq(
-      "org.apache.kafka" % "kafka-clients" % "0.10.1.1",
+      "org.apache.kafka" % "kafka-clients" % KafkaClientVersion,
       "org.scalactic" %% "scalactic" % "2.2.6" % "it,test",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "it,test",
       "org.scalatest" %% "scalatest" % "2.2.6" % "it,test",
@@ -86,7 +90,7 @@ lazy val main = (project in file("main"))
     name := "kafka-consumer",
     crossScalaVersions := Seq("2.10.6", "2.11.11"),
     libraryDependencies ++= Seq(
-      "org.apache.kafka" % "kafka-clients" % "0.10.1.1",
+      "org.apache.kafka" % "kafka-clients" % KafkaClientVersion,
       "org.slf4j" % "slf4j-api" % "1.7.12"
     )
   )
