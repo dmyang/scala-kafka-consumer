@@ -127,7 +127,7 @@ class PartitionedKafkaConsumerSpec extends FreeSpec with Matchers with KafkaCons
       override protected def processRecord(record: ConsumerRecord[String, String], partition: Int): Future[Unit] = {
         if (!hasFailedOnce) {
           hasFailedOnce = true
-          Future.failed(new RuntimeException("Simulated consumer exception."))
+          throw new RuntimeException("Simulated consumer exception.")
         } else {
           super.processRecord(record, partition)
         }
