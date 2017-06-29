@@ -8,9 +8,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class SimpleKafkaConsumerSpec
-  extends FreeSpec with Matchers with KafkaConsumerSpec with Eventually
-{
+class SimpleKafkaConsumerSpec extends FreeSpec with Matchers with KafkaConsumerSpec with Eventually {
   protected val topic = "kafkaconsumer_it_topic"
 
   object testProducer extends TestProducer(topic) {

@@ -23,9 +23,18 @@ echo "Parsing release version..."
 RELEASE_VER=$(cat version.sbt | grep -o '".*"' | tr -d '"')
 GIT_TAG=v$RELEASE_VER
 
+# we have to do some manual version setting because SBT doesn't seem to understand that partitioned should not be compiled for 2.10
 echo "Conditionally publishing release and cutting git tag..."
 test "${TRAVIS_PULL_REQUEST}" = 'false' &&
-test "${TRAVIS_JDK_VERSION}" = 'openjdk7' &&
-sbt ++${TRAVIS_SCALA_VERSION} publish &&
+test "${TRAVIS_JDK_VERSION}" = 'oraclejdk8' &&
+test "${TRAVIS_SCALA_VERSION}" = '2.11.11' &&
+sbt ++2.10.6 testSupport/publish &&
+sbt ++2.11.11 testSupport/publish &&
+sbt ++2.12.2 testSupport/publish &&
+sbt ++2.10.6 main/publish &&
+sbt ++2.11.11 main/publish &&
+sbt ++2.12.2 main/publish &&
+sbt ++2.11.11 partitioned/publish &&
+sbt ++2.12.2 partitioned/publish &&
 git tag -a $GIT_TAG -m "Release version $RELEASE_VER" &&
 git push origin $GIT_TAG
