@@ -135,6 +135,20 @@ class SimpleKafkaConsumerSpec extends FreeSpec with Matchers with KafkaConsumerS
       val expectedIdGroups: Seq[Seq[Long]] = ids.grouped(4).toSeq
       consumer.processedKeyGroups shouldBe expectedIdGroups
     }
+
+    "After to many exceptions in a short time period, the consumer dies" in {
+      val restartDelay = 1.second
+      val restarts = 2
+      val badConsumer = makeFailingConsumer(restartDelay = restartDelay, maxRestarts = restarts, restartInterval = 100 minutes)
+      badConsumer.start()
+
+      val ids: Seq[Long] = makeMessageIdSeq(10)
+      testProducer.sendTestMessages(ids)
+
+      val delay = badConsumer.awaitTerminationAndTrackDelay()
+
+      delay should be < (restartDelay * restarts + 10.second /* 10s buffer */).toMillis
+    }
   }
 
   def makeMessageIdSeq(count: Int): Seq[Long] = {
@@ -167,8 +181,8 @@ class SimpleKafkaConsumerSpec extends FreeSpec with Matchers with KafkaConsumerS
   def makeConsumer(pollTimeout: Duration): ShutdownTestConsumer =
     new ShutdownTestConsumer(topic, pollTimeout = pollTimeout)
 
-  def makeFailingConsumer(restartDelay: Duration): ShutdownTestConsumer =
-    new ShutdownTestConsumer(topic, restartOnExceptionDelay = restartDelay) {
+  def makeFailingConsumer(restartDelay: Duration, maxRestarts: Int = SimpleKafkaConsumer.maxRestartsInIntervalDueToExceptions, restartInterval: Duration = SimpleKafkaConsumer.restartDueToExceptionsInterval): ShutdownTestConsumer =
+    new ShutdownTestConsumer(topic, restartOnExceptionDelay = restartDelay, maxRestartsInIntervalDueToExceptions = maxRestarts, restartDueToExceptionsInterval = restartInterval) {
       override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {
         throw new RuntimeException("Simulated consumer exception.")
       }

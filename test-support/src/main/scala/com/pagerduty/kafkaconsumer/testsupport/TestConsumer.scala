@@ -98,12 +98,16 @@ trait ConsumerTestHelper { self: SimpleKafkaConsumer[_, _] =>
 class ShutdownTestConsumer(
     topic: String,
     pollTimeout: Duration = 100 milliseconds,
-    restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay)
+    restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay,
+    maxRestartsInIntervalDueToExceptions: Int = SimpleKafkaConsumer.maxRestartsInIntervalDueToExceptions,
+    restartDueToExceptionsInterval: Duration = SimpleKafkaConsumer.restartDueToExceptionsInterval)
     extends SimpleKafkaConsumer(
       topic,
       TestConsumerConfig.makeProps(),
       pollTimeout = pollTimeout,
-      restartOnExceptionDelay = restartOnExceptionDelay
+      restartOnExceptionDelay = restartOnExceptionDelay,
+      maxRestartsInIntervalDueToExceptions = maxRestartsInIntervalDueToExceptions,
+      restartDueToExceptionsInterval = restartDueToExceptionsInterval
     ) {
   override protected def processRecords(records: ConsumerRecords[String, String]): Unit = {}
 
