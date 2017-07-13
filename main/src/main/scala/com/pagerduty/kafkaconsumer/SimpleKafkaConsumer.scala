@@ -1,12 +1,16 @@
 package com.pagerduty.kafkaconsumer
 
+import java.lang.Thread.UncaughtExceptionHandler
+import java.time.Instant
 import java.util.Properties
 import java.util.concurrent.{Executors, ThreadFactory, TimeoutException}
+
 import org.apache.kafka.clients.consumer._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.WakeupException
 import org.apache.kafka.common.serialization.{Deserializer, StringDeserializer}
 import org.slf4j.LoggerFactory
+
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent._
@@ -51,6 +55,10 @@ import scala.util.control.NonFatal
   * @param valueDeserializer Optional value deserializer, by default String-based
   * @param pollTimeout Optional timeout for the Kafka client poll() call
   * @param restartOnExceptionDelay Optional sleep time before reconnecting on an exception
+  * @param commitOffsetTimeout Optional timeout for committing offset to kafka
+  * @param metrics Optional metrics sink
+  * @param maxRestartsInIntervalDueToExceptions Optional max restarts due to nonfatal exceptions in restart interval,
+  * @param restartDueToExceptionsInterval Optional time interval referenced above, default: max 5 restarts in 60s
   * @tparam K
   * @tparam V
   */
@@ -62,12 +70,15 @@ abstract class SimpleKafkaConsumer[K, V](
     val pollTimeout: Duration = SimpleKafkaConsumer.pollTimeout,
     val restartOnExceptionDelay: Duration = SimpleKafkaConsumer.restartOnExceptionDelay,
     val commitOffsetTimeout: Duration = SimpleKafkaConsumer.commitOffsetTimeout,
-    val metrics: ConsumerMetrics = SimpleConsumerMetrics) {
+    val metrics: ConsumerMetrics = SimpleConsumerMetrics,
+    val maxRestartsInIntervalDueToExceptions: Int = SimpleKafkaConsumer.maxRestartsInIntervalDueToExceptions,
+    val restartDueToExceptionsInterval: Duration = SimpleKafkaConsumer.restartDueToExceptionsInterval) {
   protected val log = LoggerFactory.getLogger(this.getClass)
 
   private val lock = new Object
   private val shutdownPromise = promise[Unit]
   @volatile private var shutdownRequested = false
+  @volatile private var terminatedPrematurely = false
   @volatile private var currentKafkaConsumer: Option[KafkaConsumer[K, V]] = None
   @volatile private var currentPartitionCount: Option[Int] = None
   @volatile private var isPollingThreadRunning = false
@@ -89,25 +100,37 @@ abstract class SimpleKafkaConsumer[K, V](
     *
     * @return true when the polling thread has stopped after a call to `shutdown()`
     */
-  final def hasTerminated = shutdownRequested && !isPollingThreadRunning
+  final def hasTerminated = (shutdownRequested || terminatedPrematurely) && !isPollingThreadRunning
 
   /**
     * Starts the polling thread. Once started, the consumer must be `shutdown()` to terminate.
     *
     * Any unhandled exceptions will cause the underlying Kafka consumer to be re-started after
     * the specified `restart-on-exception-delay` interval plus a random offset.
+    *
+    * If we experience more restarts than `maxRestartsInIntervalDueToExceptions` in the time
+    * interval `restartDueToExceptionsInterval`, the consumer will crash. You can optionally
+    * specify the handler for these cases.
+    *
+    * @param uncaughtExceptionHandler handler to be called if we restart to often in a small time interval
     */
-  final def start(): Unit = lock.synchronized {
+  final def start(uncaughtExceptionHandler: Option[UncaughtExceptionHandler] = None): Unit = lock.synchronized {
     if (isPollingThreadRunning) throw new IllegalStateException("Already running.")
     if (shutdownPromise.isCompleted) throw new IllegalStateException("Was shutdown.")
 
     log.info("Starting polling thread...")
     isPollingThreadRunning = true
 
-    new Thread() {
+    val t = new Thread() {
       override def run(): Unit = {
         try {
           backoffOnUnhandledExceptionLoop()
+        } catch {
+          case e: Throwable =>
+            lock.synchronized {
+              terminatedPrematurely = true
+            }
+            throw e
         } finally {
           log.info("Shutting down polling thread.")
           lock.synchronized {
@@ -116,7 +139,9 @@ abstract class SimpleKafkaConsumer[K, V](
           }
         }
       }
-    }.start()
+    }
+    uncaughtExceptionHandler.foreach(h => t.setUncaughtExceptionHandler(h))
+    t.start()
   }
 
   /**
@@ -188,13 +213,29 @@ abstract class SimpleKafkaConsumer[K, V](
   }
 
   private def backoffOnUnhandledExceptionLoop(): Unit = {
+    var exceptionTimeBuffer = List[Instant]()
     while (!shutdownRequested) {
       try {
         initializeConsumerAndEnterPollLoop()
       } catch {
         case NonFatal(e) =>
-          logExceptionAndDelayRestart(e)
+          val now = Instant.now
+          exceptionTimeBuffer = now :: exceptionTimeBuffer
+          val startOfInterval = now.minusMillis(restartDueToExceptionsInterval.toMillis)
+          exceptionTimeBuffer = exceptionTimeBuffer.filter(_.isAfter(startOfInterval))
 
+          log.info(
+            s"Exceptions in the past ${restartDueToExceptionsInterval.toSeconds}s: ${exceptionTimeBuffer.length}, max: ${maxRestartsInIntervalDueToExceptions}"
+          )
+          if (exceptionTimeBuffer.length > maxRestartsInIntervalDueToExceptions) {
+            log.error(
+              s"Too many exceptions thrown in the past ${restartDueToExceptionsInterval.toSeconds}s, stopping",
+              e
+            )
+            throw e
+          }
+
+          logExceptionAndDelayRestart(e)
         case fatal: Throwable =>
           log.error("Fatal error in polling thread.", fatal)
           throw fatal
@@ -277,7 +318,7 @@ abstract class SimpleKafkaConsumer[K, V](
     val restartDelayWithRandomOffset = restartOnExceptionDelay + randomDelay
     log.error(
       "Unhandled exception, restarting kafka consumer " +
-        s"in $restartDelayWithRandomOffset.",
+        s"in $restartDelayWithRandomOffset. Exception class: ${exception.getClass()}",
       exception
     )
     setCurrentThreadDescription("awaiting restart")
@@ -325,6 +366,11 @@ object SimpleKafkaConsumer {
 
   /** Default commit offset timeout */
   val commitOffsetTimeout: Duration = 5 seconds
+
+  /** Default maximum restarts in the restart interval
+    * ie. allow a maximum of 5 restarts in 60 seconds */
+  val maxRestartsInIntervalDueToExceptions: Int = 5
+  val restartDueToExceptionsInterval: Duration = 60 seconds
 
   /** Helper to create basic properties */
   def makeProps(bootstrapServer: String, consumerGroup: String, maxPollRecords: Option[Int] = None): Properties = {
