@@ -124,7 +124,7 @@ class SimpleKafkaConsumerSpec extends FreeSpec with Matchers with KafkaConsumerS
     }
 
     "support max.poll.records" in {
-      val consumer = new TestConsumer(topic, maxPollRecords = Option(4))
+      val consumer = new TestConsumer(topic, pollTimeout = 10.seconds, maxPollRecords = Option(4))
       consumer.start()
 
       val ids: Seq[Long] = makeMessageIdSeq(10)

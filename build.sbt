@@ -41,7 +41,7 @@ lazy val KafkaClientVersion = "0.10.1.1"
 
 lazy val sharedSettings = Seq(
   organization := "com.pagerduty",
-  scalaVersion := "2.11.11",
+  scalaVersion := "2.12.2",
   // akka-stream-kafka wants a newer version, but works fine with the older client
   dependencyOverrides += "org.apache.kafka" % "kafka-clients" % KafkaClientVersion,
   scalafmtTestOnCompile := true
@@ -54,7 +54,6 @@ lazy val tests = (project in file("tests"))
   .settings(Defaults.itSettings: _*)
   .settings(sharedSettings: _*)
   .settings(
-    scalaVersion := "2.12.2",
     name := "kafka-consumer-tests",
     publishArtifact in Compile := false,
     publishArtifact in Test := false,
@@ -75,7 +74,6 @@ lazy val testSupport = (project in file("test-support"))
   .settings(sharedSettings: _*)
   .settings(publishSettings: _*)
   .settings(
-    scalaVersion := "2.12.2",
     name := "kafka-consumer-test-support",
     crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2"),
     libraryDependencies ++= Seq(

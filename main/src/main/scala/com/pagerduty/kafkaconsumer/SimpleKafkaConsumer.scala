@@ -125,11 +125,16 @@ abstract class SimpleKafkaConsumer[K, V](
       override def run(): Unit = {
         try {
           backoffOnUnhandledExceptionLoop()
+        } catch {
+          case e: Throwable =>
+            lock.synchronized {
+              terminatedPrematurely = true
+            }
+            throw e
         } finally {
           log.info("Shutting down polling thread.")
           lock.synchronized {
             isPollingThreadRunning = false
-            terminatedPrematurely = true
             shutdownPromise.success(Unit)
           }
         }
@@ -217,15 +222,14 @@ abstract class SimpleKafkaConsumer[K, V](
           val now = Instant.now
           exceptionTimeBuffer = now :: exceptionTimeBuffer
           val startOfInterval = now.minusMillis(restartDueToExceptionsInterval.toMillis)
-
           exceptionTimeBuffer = exceptionTimeBuffer.filter(_.isAfter(startOfInterval))
 
           log.info(
-            s"Exceptions in the past ${restartDueToExceptionsInterval.toMillis}ms ${exceptionTimeBuffer.length}, max: ${maxRestartsInIntervalDueToExceptions}"
+            s"Exceptions in the past ${restartDueToExceptionsInterval.toSeconds}s: ${exceptionTimeBuffer.length}, max: ${maxRestartsInIntervalDueToExceptions}"
           )
           if (exceptionTimeBuffer.length > maxRestartsInIntervalDueToExceptions) {
             log.error(
-              s"To many exceptions thrown in the past ${restartDueToExceptionsInterval.toSeconds}s, stopping",
+              s"Too many exceptions thrown in the past ${restartDueToExceptionsInterval.toSeconds}s, stopping",
               e
             )
             throw e
