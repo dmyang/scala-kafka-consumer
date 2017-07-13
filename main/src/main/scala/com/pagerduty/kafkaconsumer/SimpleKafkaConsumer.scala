@@ -1,5 +1,6 @@
 package com.pagerduty.kafkaconsumer
 
+import java.lang.Thread.UncaughtExceptionHandler
 import java.time.Instant
 import java.util.Properties
 import java.util.concurrent.{Executors, ThreadFactory, TimeoutException}
@@ -106,15 +107,21 @@ abstract class SimpleKafkaConsumer[K, V](
     *
     * Any unhandled exceptions will cause the underlying Kafka consumer to be re-started after
     * the specified `restart-on-exception-delay` interval plus a random offset.
+    *
+    * If we experience more restarts than `maxRestartsInIntervalDueToExceptions` in the time
+    * interval `restartDueToExceptionsInterval`, the consumer will crash. You can optionally
+    * specify the handler for these cases.
+    *
+    * @param uncaughtExceptionHandler handler to be called if we restart to often in a small time interval
     */
-  final def start(): Unit = lock.synchronized {
+  final def start(uncaughtExceptionHandler: Option[UncaughtExceptionHandler] = None): Unit = lock.synchronized {
     if (isPollingThreadRunning) throw new IllegalStateException("Already running.")
     if (shutdownPromise.isCompleted) throw new IllegalStateException("Was shutdown.")
 
     log.info("Starting polling thread...")
     isPollingThreadRunning = true
 
-    new Thread() {
+    val t = new Thread() {
       override def run(): Unit = {
         try {
           backoffOnUnhandledExceptionLoop()
@@ -127,7 +134,9 @@ abstract class SimpleKafkaConsumer[K, V](
           }
         }
       }
-    }.start()
+    }
+    uncaughtExceptionHandler.foreach(h => t.setUncaughtExceptionHandler(h))
+    t.start()
   }
 
   /**
