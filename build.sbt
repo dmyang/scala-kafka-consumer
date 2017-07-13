@@ -41,7 +41,7 @@ lazy val KafkaClientVersion = "0.10.1.1"
 
 lazy val sharedSettings = Seq(
   organization := "com.pagerduty",
-  scalaVersion := "2.11.11",
+  scalaVersion := "2.12.2",
   // akka-stream-kafka wants a newer version, but works fine with the older client
   dependencyOverrides += "org.apache.kafka" % "kafka-clients" % KafkaClientVersion,
   scalafmtTestOnCompile := true
