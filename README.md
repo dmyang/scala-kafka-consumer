@@ -10,6 +10,8 @@ library to use as a transitive dependency (so don't double-specify it if
 you're depending on this library) and provides a base test class for Kafka-eske
 integration tests.
 
+*** NOTE: This library uses Java 8 functionality. ***
+
 ## Installation
 
 This library is published as a number of different artifacts to the PagerDuty Bintray OSS Maven repository:
