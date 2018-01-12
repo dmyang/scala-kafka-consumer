@@ -30,5 +30,8 @@ before_script:
   - ~/travis-deps/start-kafka.sh && sleep 3
 script:
   - sbt -Dsbt.log.noformat=true -sbt-dir ~/.sbt ++$TRAVIS_SCALA_VERSION test it:test
+after_script:
+  - ~/travis-deps/kafka/kafka-server-stop.sh && sleep 3
+  - sudo killall java consul mysqld && sleep 3 # Attempt to fix build hangs
 after_success:
-- sh "$TRAVIS_BUILD_DIR/.travis.release.sh"
+  - sh "$TRAVIS_BUILD_DIR/.travis.release.sh"
