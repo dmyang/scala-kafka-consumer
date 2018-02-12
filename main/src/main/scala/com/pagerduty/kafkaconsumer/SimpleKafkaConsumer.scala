@@ -175,6 +175,18 @@ abstract class SimpleKafkaConsumer[K, V](
   }
 
   /**
+    * Get the amount of time to sleep after an exception
+    *
+    * This function is exposed to be altered in a subclass.
+    *
+    * @param exception raised during poll loop
+    */
+  def restartOnExceptionDelayDuration(exception: Throwable): Duration = {
+    val randomDelay = Random.nextInt(restartOnExceptionDelay.toSeconds.toInt).seconds
+    restartOnExceptionDelay + randomDelay
+  }
+
+  /**
     * This is the only method you need to implement in order to start consuming messages using
     * SimpleKafkaConsumer. The consumer offset is committed after every successful invocation
     * of this method. If this method throws and exception, all of the records in the failed
@@ -314,8 +326,7 @@ abstract class SimpleKafkaConsumer[K, V](
   }
 
   private def logExceptionAndDelayRestart(exception: Throwable): Unit = {
-    val randomDelay = Random.nextInt(restartOnExceptionDelay.toSeconds.toInt).seconds
-    val restartDelayWithRandomOffset = restartOnExceptionDelay + randomDelay
+    val restartDelayWithRandomOffset = restartOnExceptionDelayDuration(exception)
     log.error(
       "Unhandled exception, restarting kafka consumer " +
         s"in $restartDelayWithRandomOffset. Exception class: ${exception.getClass()}",
