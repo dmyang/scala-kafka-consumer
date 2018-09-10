@@ -276,7 +276,20 @@ abstract class SimpleKafkaConsumer[K, V](
 
   private def pollLoop(kafkaConsumer: KafkaConsumer[K, V]): Unit = {
     while (!shutdownRequested) {
-      pollKafkaConsumer(kafkaConsumer)
+      try {
+        pollKafkaConsumer(kafkaConsumer)
+      } catch {
+        // Occurs if auto.reset.policy is set to "none" during a poll
+        case e: OffsetOutOfRangeException => {
+          val resetTime: java.lang.Long = System.currentTimeMillis - (5 * 60 * 1000) // 5 minutes ago
+          val partitions = e.partitions().map { p => p -> resetTime }.toMap
+          val timestampsToSearch = mapAsJavaMap(partitions)
+          val partitionToOffset = kafkaConsumer.offsetsForTimes(timestampsToSearch)
+          for ((topicPartition, offsetAndTimestamp) <- partitionToOffset) {
+            kafkaConsumer.seek(topicPartition, offsetAndTimestamp.offset())
+          }
+        }
+      }
     }
   }
 
